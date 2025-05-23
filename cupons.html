@@ -114,20 +114,22 @@
       tbody.innerHTML = '';
 
       dados.reverse().forEach(cupom => {
-  const linha = document.createElement('tr');
-  linha.innerHTML = `
-    <td>${cupom.codigo}</td>
-    <td>${cupom.cliente_nome || ''}<br><small>${cupom.cliente_telefone || ''}</small></td>
-    <td>${cupom.brinde}</td>
-    <td>${new Date(cupom.valido_ate).toLocaleDateString('pt-BR')}</td>
-    <td>${cupom.utilizado ? 'Utilizado' : 'Disponível'}</td>
-    <td>
-      ${!cupom.utilizado ? `<button class="btn btn-sm btn-danger" onclick="darBaixa('${cupom.codigo}')">Dar baixa</button>` : '-'}
-    </td>
-  `;
-  tbody.appendChild(linha);
-});
-
+        const linha = document.createElement('tr');
+        linha.innerHTML = `
+          <td>${cupom.codigo}</td>
+          <td>
+            ${cupom.cliente_nome || ''}<br>
+            <small>${cupom.cliente_telefone || ''}</small>
+          </td>
+          <td>${cupom.brinde}</td>
+          <td>${new Date(cupom.valido_ate).toLocaleDateString('pt-BR')}</td>
+          <td>${cupom.utilizado ? 'Utilizado' : 'Disponível'}</td>
+          <td>
+            ${!cupom.utilizado ? `<button class="btn btn-sm btn-danger" onclick="darBaixa('${cupom.codigo}')">Dar baixa</button>` : '-'}
+          </td>
+        `;
+        tbody.appendChild(linha);
+      });
     }
 
     async function darBaixa(codigo) {
