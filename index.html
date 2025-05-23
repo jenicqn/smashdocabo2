@@ -2,137 +2,106 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Painel de Respostas - Clientes</title>
+  <title>Painel Smash do Cabo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       background-color: #f4f6fa;
-      display: flex;
       margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 240px;
-      background-color: #0e1628;
-      color: white;
-      height: 100vh;
+      height: 100%;
+      background-color: #0f172a;
       padding-top: 20px;
     }
     .sidebar a {
       display: block;
+      color: white;
       padding: 12px 20px;
-      color: white;
       text-decoration: none;
+      transition: background 0.3s;
     }
-    .sidebar a:hover,
-    .sidebar a.active {
-      background-color: #1f2a48;
-      border-left: 4px solid #f97316;
+    .sidebar a:hover, .sidebar a.active {
+      background-color: #1e293b;
     }
-    .main-content {
-      flex-grow: 1;
+    .content {
+      margin-left: 240px;
+      padding: 30px;
     }
-    .header {
-      background-color: #ff6600;
-      color: white;
-      padding: 10px 30px;
+    .topbar {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
-      height: 60px;
+      padding: 15px 30px;
+      background-color: white;
+      border-bottom: 1px solid #e5e7eb;
     }
-    .dashboard-cards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      margin: 20px;
-    }
-    .dashboard-card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      padding: 20px;
-      flex: 1 1 calc(25% - 16px);
-      min-width: 250px;
-    }
-    .dashboard-card h6 {
-      font-weight: bold;
-      color: #555;
-    }
-    .dashboard-card .value {
-      font-size: 24px;
+    .user-info {
       font-weight: bold;
     }
-    .logout-btn {
-      background: none;
+    .card {
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       border: none;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
-<div class="sidebar">
-  <a href="index.html">Início</a>
-  <a href="respostas.html">Gestão das Respostas</a>
-  <a href="configuracoes.html">Configurações</a>
-  <a href="usuarios.html">Usuários</a>
-  <a href="cupons.html">Cupons</a>
-</div>
 
+  <div class="sidebar">
+    <a href="index.html" class="active">Início</a>
+    <a href="respostas.html">Gestão das Respostas</a>
+    <a href="configuracoes.html">Configurações</a>
+    <a href="usuarios.html">Usuários</a>
+    <a href="cupons.html">Cupons</a>
+  </div>
 
-  <div class="main-content">
-    <div class="header">
-      <h1 class="mb-0">Painel de Respostas - Clientes</h1>
-      <div class="d-flex align-items-center gap-3">
-        <span id="usuarioInfo" class="fw-bold">Olá</span>
-        <button onclick="logout()" class="logout-btn" title="Sair">🚪</button>
+  <div class="content">
+    <div class="topbar">
+      <div class="user-info">Olá, Jeniffer Adm</div>
+    </div>
+
+    <div class="row g-4 mt-3">
+      <div class="col-md-3">
+        <div class="card p-3">
+          <h6 class="text-muted">NPS</h6>
+          <h3>100</h3>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card p-3">
+          <h6 class="text-muted">Promotores</h6>
+          <h3>3</h3>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card p-3">
+          <h6 class="text-muted">Neutros</h6>
+          <h3>0</h3>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card p-3">
+          <h6 class="text-muted">Detratores</h6>
+          <h3>0</h3>
+        </div>
       </div>
     </div>
 
-    <div class="dashboard-cards" id="painelResumo"></div>
+    <div class="row g-4 mt-2">
+      <div class="col-md-3">
+        <div class="card p-3">
+          <h6 class="text-muted">Respostas</h6>
+          <h3>3</h3>
+        </div>
+      </div>
+    </div>
+
   </div>
-
-  <script>
-    const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
-
-    const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
-    if (!usuario) window.location.href = 'login.html';
-    document.getElementById('usuarioInfo').textContent = `Olá, ${usuario.nome}`;
-
-    function logout() {
-      localStorage.removeItem('usuarioLogado');
-      window.location.href = 'login.html';
-    }
-
-    async function carregarDashboard() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado`, {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      });
-      const dados = await res.json();
-      const total = dados.length;
-      const promotores = dados.filter(d => d.indicacao >= 9).length;
-      const detratores = dados.filter(d => d.indicacao <= 6).length;
-      const neutros = dados.filter(d => d.indicacao >= 7 && d.indicacao <= 8).length;
-      const nps = Math.round(((promotores - detratores) / total) * 100);
-
-      const painel = document.getElementById('painelResumo');
-      painel.innerHTML = `
-        <div class="dashboard-card"><h6>NPS</h6><div class="value">${nps}</div></div>
-        <div class="dashboard-card"><h6>Promotores</h6><div class="value">${promotores}</div></div>
-        <div class="dashboard-card"><h6>Neutros</h6><div class="value">${neutros}</div></div>
-        <div class="dashboard-card"><h6>Detratores</h6><div class="value">${detratores}</div></div>
-        <div class="dashboard-card"><h6>Respostas</h6><div class="value">${total}</div></div>
-      `;
-    }
-
-    carregarDashboard();
-  </script>
 </body>
 </html>
