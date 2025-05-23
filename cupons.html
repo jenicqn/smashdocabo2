@@ -155,7 +155,8 @@
       });
 
       if (resposta.ok) {
-        console.log('✅ Cupom atualizado: ', await resposta.json());
+        console.log('✅ Cupom atualizado');
+
         carregarCupons();
       } else {
         alert('Erro ao dar baixa no cupom.');
