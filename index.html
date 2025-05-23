@@ -150,26 +150,26 @@
       }
     }
 
-    async function redefinirSenha() {
-  const email = prompt("Digite seu email:");
-  if (!email) return;
+        async function redefinirSenha() {
+      const email = prompt("Digite seu email:");
+      if (!email) return;
 
-  try {
-    const { data, error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://painel.smashdocabo.com/reset.html'
-    });
+      try {
+        const { data, error } = await client.auth.resetPasswordForEmail(email, {
+          redirectTo: 'https://painel.smashdocabo.com/reset.html'
+        });
 
-    if (error) {
-      console.error("Erro Supabase:", error);
-      alert("Erro ao enviar e-mail. Verifique se o email está correto.");
-    } else {
-      alert("Enviamos um link de redefinição para seu e-mail.");
+        if (error) {
+          console.error("Erro Supabase:", error);
+          alert("Erro ao enviar e-mail. Verifique se o email está correto.");
+        } else {
+          alert("Enviamos um link de redefinição para seu e-mail.");
+        }
+      } catch (err) {
+        console.error("Erro inesperado:", err);
+        alert("Erro inesperado ao tentar enviar e-mail.");
+      }
     }
-  } catch (err) {
-    console.error("Erro inesperado:", err);
-    alert("Erro inesperado ao tentar enviar e-mail.");
-  }
-}
 
     }
   </script>
