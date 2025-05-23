@@ -7,100 +7,134 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      background-color: #f4f6fa;
+      display: flex;
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .sidebar {
+      width: 240px;
+      background-color: #0f172a;
+      color: white;
+      height: 100vh;
       position: fixed;
       top: 0;
       left: 0;
-      width: 240px;
-      height: 100%;
-      background-color: #0f172a;
+      display: flex;
+      flex-direction: column;
       padding-top: 20px;
     }
     .sidebar a {
-      display: block;
       color: white;
-      padding: 12px 20px;
       text-decoration: none;
-      transition: background 0.3s;
+      padding: 15px 20px;
+      display: block;
     }
     .sidebar a:hover, .sidebar a.active {
       background-color: #1e293b;
     }
     .content {
       margin-left: 240px;
-      padding: 30px;
+      padding: 20px;
+      background-color: #f4f6fa;
+      width: 100%;
+      min-height: 100vh;
     }
-    .topbar {
+    .header {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       align-items: center;
-      padding: 15px 30px;
+      margin-bottom: 20px;
+    }
+    .card-summary {
       background-color: white;
-      border-bottom: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
     }
-    .user-info {
+    .card-summary h4 {
+      margin-bottom: 10px;
+      font-size: 16px;
+      color: #333;
+    }
+    .card-summary p {
+      font-size: 24px;
       font-weight: bold;
-    }
-    .card {
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      border: none;
     }
   </style>
 </head>
 <body>
-
   <div class="sidebar">
     <a href="index.html" class="active">Início</a>
     <a href="respostas.html">Gestão das Respostas</a>
     <a href="usuarios.html">Usuários</a>
     <a href="cupons.html">Cupons</a>
   </div>
-
   <div class="content">
-    <div class="topbar">
-      <div class="user-info">Olá, Jeniffer Adm</div>
+    <div class="header">
+      <h2>Painel de Respostas - Clientes</h2>
+      <div><strong>Olá, Jeniffer Adm</strong></div>
     </div>
-
-    <div class="row g-4 mt-3">
+    <div class="row">
       <div class="col-md-3">
-        <div class="card p-3">
-          <h6 class="text-muted">NPS</h6>
-          <h3>100</h3>
+        <div class="card-summary">
+          <h4>NPS</h4>
+          <p id="npsTotal">-</p>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card p-3">
-          <h6 class="text-muted">Promotores</h6>
-          <h3>3</h3>
+        <div class="card-summary">
+          <h4>Promotores</h4>
+          <p id="promotoresTotal">-</p>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card p-3">
-          <h6 class="text-muted">Neutros</h6>
-          <h3>0</h3>
+        <div class="card-summary">
+          <h4>Neutros</h4>
+          <p id="neutrosTotal">-</p>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card p-3">
-          <h6 class="text-muted">Detratores</h6>
-          <h3>0</h3>
+        <div class="card-summary">
+          <h4>Detratores</h4>
+          <p id="detratoresTotal">-</p>
         </div>
       </div>
-    </div>
-
-    <div class="row g-4 mt-2">
       <div class="col-md-3">
-        <div class="card p-3">
-          <h6 class="text-muted">Respostas</h6>
-          <h3>3</h3>
+        <div class="card-summary">
+          <h4>Respostas</h4>
+          <p id="respostasTotal">-</p>
         </div>
       </div>
     </div>
-
   </div>
+  <script>
+    const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
+
+    async function carregarResumo() {
+      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=atendimento`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+
+      const dados = await resposta.json();
+      const total = dados.length;
+      const promotores = dados.filter(r => r.atendimento >= 9).length;
+      const neutros = dados.filter(r => r.atendimento === 7 || r.atendimento === 8).length;
+      const detratores = dados.filter(r => r.atendimento <= 6).length;
+      const nps = ((promotores - detratores) / total) * 100;
+
+      document.getElementById('npsTotal').textContent = nps.toFixed(0);
+      document.getElementById('promotoresTotal').textContent = promotores;
+      document.getElementById('neutrosTotal').textContent = neutros;
+      document.getElementById('detratoresTotal').textContent = detratores;
+      document.getElementById('respostasTotal').textContent = total;
+    }
+
+    carregarResumo();
+  </script>
 </body>
 </html>
