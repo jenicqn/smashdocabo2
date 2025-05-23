@@ -7,30 +7,38 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; font-family: 'Segoe UI', sans-serif; }
-    .container { display: flex; height: 100vh; }
+
+    .container {
+      display: flex;
+      height: 100vh;
+    }
 
     .left {
       flex: 1;
       background-color: #f97316;
-      color: white;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 40px;
     }
 
     .left img {
       width: 500px;
-      margin-bottom: 10px;
+      max-width: 90%;
     }
 
     .right {
       flex: 1;
       background: #f9f9f9;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+    }
+
+    .right h2 {
+      font-size: 24px;
+      margin-bottom: 24px;
+      font-weight: bold;
     }
 
     .form {
@@ -40,12 +48,6 @@
       padding: 40px;
       border-radius: 12px;
       box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
-    }
-
-    h2 {
-      margin-bottom: 24px;
-      text-align: center;
-      font-size: 22px;
     }
 
     input[type="email"],
@@ -94,9 +96,10 @@
     <div class="left">
       <img src="https://jenicqn.github.io/smashdocabo/logo.png" alt="Logo Smash" />
     </div>
+
     <div class="right">
+      <h2>Acesse sua conta</h2>
       <div class="form">
-        <h2>Acesse sua conta</h2>
         <div id="erro" class="error"></div>
         <input type="email" id="email" placeholder="Email" required />
         <input type="password" id="senha" placeholder="Senha" required />
@@ -106,7 +109,7 @@
     </div>
   </div>
 
-  <!-- Supabase SDK -->
+  <!-- Supabase Auth JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const supabase = supabase.createClient(
