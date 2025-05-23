@@ -55,6 +55,14 @@
     .table th {
       background-color: #eaeaea;
     }
+    .badge-disponivel {
+      background-color: gold;
+      color: #000;
+    }
+    .badge-utilizado {
+      background-color: #28a745;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -90,76 +98,71 @@
   </div>
 
   <script>
-  const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
+    const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
 
-  const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
-  if (!usuario) window.location.href = 'login.html';
-  document.getElementById('usuarioInfo').textContent = `Olá, ${usuario.nome}`;
+    const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
+    if (!usuario) window.location.href = 'login.html';
+    document.getElementById('usuarioInfo').textContent = `Olá, ${usuario.nome}`;
 
-  function logout() {
-    localStorage.removeItem('usuarioLogado');
-    window.location.href = 'login.html';
-  }
-
-  async function carregarCupons() {
-    const resposta = await fetch(`${SUPABASE_URL}/rest/v1/cupons?select=*`, {
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-      }
-    });
-    const dados = await resposta.json();
-    const tbody = document.querySelector('#tabela-cupons tbody');
-    tbody.innerHTML = '';
-
-    dados.reverse().forEach(cupom => {
-      const linha = document.createElement('tr');
-      const status = cupom.utilizado
-        ? `<span class="badge bg-success">Utilizado</span><br><small>${new Date(cupom.data_utilizado).toLocaleString('pt-BR')}</small>`
-        : `<span class="badge bg-warning text-dark">Disponível</span>`;
-      const acao = cupom.utilizado
-        ? `<span class="text-muted">-</span>`
-        : `<button class="btn btn-sm btn-danger" onclick="darBaixa('${cupom.codigo}')">Dar baixa</button>`;
-
-      linha.innerHTML = `
-        <td>${cupom.codigo}</td>
-        <td>
-          ${cupom.cliente_nome || ''}<br>
-          <small>${cupom.cliente_telefone || ''}</small>
-        </td>
-        <td>${cupom.brinde}</td>
-        <td>${new Date(cupom.valido_ate).toLocaleDateString('pt-BR')}</td>
-        <td>${status}</td>
-        <td>${acao}</td>
-      `;
-      tbody.appendChild(linha);
-    });
-  }
-
-  async function darBaixa(codigo) {
-    const agora = new Date().toISOString();
-    const resposta = await fetch(`${SUPABASE_URL}/rest/v1/cupons?codigo=eq.${codigo}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        utilizado: true,
-        data_utilizado: agora
-      })
-    });
-
-    if (resposta.ok) {
-      carregarCupons(); // Atualiza a tabela sem alert
-    } else {
-      alert('Erro ao dar baixa no cupom.');
+    function logout() {
+      localStorage.removeItem('usuarioLogado');
+      window.location.href = 'login.html';
     }
-  }
 
-  carregarCupons();
-</script>
+    async function carregarCupons() {
+      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/cupons?select=*`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+      const dados = await resposta.json();
+      const tbody = document.querySelector('#tabela-cupons tbody');
+      tbody.innerHTML = '';
+
+      dados.reverse().forEach(cupom => {
+        const linha = document.createElement('tr');
+        const status = cupom.utilizado ? 
+          `<span class="badge badge-utilizado">Utilizado<br><small>${new Date(cupom.utilizado_em).toLocaleString('pt-BR')}</small></span>` : 
+          `<span class="badge badge-disponivel">Disponível</span>`;
+
+        linha.innerHTML = `
+          <td>${cupom.codigo}</td>
+          <td>
+            ${cupom.cliente_nome || ''}<br>
+            <small>${cupom.cliente_telefone || ''}</small>
+          </td>
+          <td>${cupom.brinde}</td>
+          <td>${new Date(cupom.valido_ate).toLocaleDateString('pt-BR')}</td>
+          <td>${status}</td>
+          <td>
+            ${!cupom.utilizado ? `<button class="btn btn-sm btn-danger" onclick="darBaixa('${cupom.codigo}')">Dar baixa</button>` : '-'}
+          </td>
+        `;
+        tbody.appendChild(linha);
+      });
+    }
+
+    async function darBaixa(codigo) {
+      const dataHora = new Date().toISOString();
+      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/cupons?codigo=eq.${codigo}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ utilizado: true, utilizado_em: dataHora })
+      });
+      if (resposta.ok) {
+        carregarCupons();
+      } else {
+        alert('Erro ao dar baixa no cupom.');
+      }
+    }
+
+    carregarCupons();
+  </script>
 </body>
 </html>
