@@ -129,7 +129,7 @@
   <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
 
   <div class="sidebar" id="sidebar">
-    <a href="index.html" class="active">Início</a>
+    <a href="painel.html" class="active">Início</a>
     <a href="respostas.html">Gestão das Respostas</a>
     <a href="usuarios.html">Usuários</a>
     <a href="cupons.html">Cupons</a>
@@ -167,6 +167,12 @@
       </div>
     </div>
   </div>
+ <script>
+  const usuario = localStorage.getItem("usuario");
+  if (!usuario) {
+    window.location.href = "index.html"; // redireciona de volta para login
+  }
+</script>
 
   <script>
     function toggleSidebar() {
