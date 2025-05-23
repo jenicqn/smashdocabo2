@@ -5,6 +5,7 @@
   <title>Painel de Respostas - Clientes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       background-color: var(--cor-fundo, #f4f6fa);
@@ -45,15 +46,14 @@
       background-color: #25D366;
       color: white;
     }
-    #formUsuarios, #secaoCupons, #secaoConfig {
+    #formUsuarios, #secaoCupons, #secaoConfig, #secaoRespostas {
       display: none;
     }
   </style>
 </head>
 <body>
-
   <div class="sidebar">
-    <a class="active" onclick="mostrarSecao('respostas')">Início</a>
+    <a class="active" onclick="mostrarSecao('inicio')">Início</a>
     <a onclick="mostrarSecao('respostas')">Gestão das Respostas</a>
     <a onclick="mostrarSecao('config')">Configurações</a>
     <a onclick="mostrarSecao('usuarios')">Usuários</a>
@@ -69,73 +69,23 @@
       </div>
     </div>
 
-    <div class="container mt-4" id="secaoRespostas">
-      <table class="table table-striped table-bordered align-middle" id="tabela-respostas">
-        <thead>
-          <tr>
-            <th>Data/Hora</th>
-            <th>Cliente</th>
-            <th>Telefone</th>
-            <th>Email</th>
-            <th>Morador</th>
-            <th>Atendimento</th>
-            <th>Sugestão</th>
-            <th class="text-center">Ações</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <div class="container mt-4" id="formUsuarios" style="max-width: 500px;">
-      <h4>Adicionar Usuário</h4>
-      <form onsubmit="return adicionarUsuario(event)">
-        <div class="mb-3">
-          <label for="nome" class="form-label">Nome</label>
-          <input type="text" id="nome" class="form-control" required>
-        </div>
-        <div class="mb-3">
-          <label for="email" class="form-label">Email</label>
-          <input type="email" id="email" class="form-control" required>
-        </div>
-        <div class="mb-3">
-          <label for="senha" class="form-label">Senha</label>
-          <input type="password" id="senha" class="form-control" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Cadastrar</button>
-        <div id="mensagemUsuario" class="mt-3"></div>
-      </form>
-    </div>
-
-    <div class="container mt-4" id="secaoCupons">
-      <h4>Controle de Cupons</h4>
-      <table class="table table-bordered" id="tabela-cupons">
-        <thead>
-          <tr>
-            <th>Código</th>
-            <th>Cliente</th>
-            <th>Brinde</th>
-            <th>Validade</th>
-            <th>Status</th>
-            <th>Ação</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <div class="container mt-4" id="secaoConfig" style="max-width: 500px;">
-      <h4>Configurações</h4>
-      <div class="mb-3">
-        <label for="brindeConfig" class="form-label">Brinde atual</label>
-        <input type="text" id="brindeConfig" class="form-control" value="1 Soda Italiana">
+    <div class="container mt-4" id="secaoInicio">
+      <h4>NPS Geral</h4>
+      <canvas id="graficoNPSGeral" height="100"></canvas>
+      <h5 class="mt-5">NPS por Pergunta</h5>
+      <div class="row">
+        <div class="col-md-6"><canvas id="graficoAtendimento"></canvas></div>
+        <div class="col-md-6"><canvas id="graficoQualidade"></canvas></div>
+        <div class="col-md-6"><canvas id="graficoTempo"></canvas></div>
+        <div class="col-md-6"><canvas id="graficoVariedade"></canvas></div>
       </div>
-      <div class="mb-3">
-        <label for="corFundo" class="form-label">Cor de fundo (hex)</label>
-        <input type="color" id="corFundo" class="form-control form-control-color" value="#f4f6fa">
-      </div>
-      <button onclick="salvarConfiguracoes()" class="btn btn-success">Salvar Configurações</button>
     </div>
+
+    <!-- Outras seções já existentes -->
+    <div class="container mt-4" id="secaoRespostas"></div>
+    <div class="container mt-4" id="formUsuarios"></div>
+    <div class="container mt-4" id="secaoCupons"></div>
+    <div class="container mt-4" id="secaoConfig"></div>
   </div>
 
   <script>
@@ -152,29 +102,61 @@
     }
 
     function mostrarSecao(secao) {
-      document.getElementById('secaoRespostas').style.display = secao === 'respostas' ? 'block' : 'none';
-      document.getElementById('formUsuarios').style.display = secao === 'usuarios' ? 'block' : 'none';
-      document.getElementById('secaoCupons').style.display = secao === 'cupons' ? 'block' : 'none';
-      document.getElementById('secaoConfig').style.display = secao === 'config' ? 'block' : 'none';
-      if (secao === 'cupons') carregarCupons();
+      const secoes = ['secaoInicio', 'secaoRespostas', 'formUsuarios', 'secaoCupons', 'secaoConfig'];
+      secoes.forEach(id => document.getElementById(id).style.display = 'none');
+      const map = {
+        'inicio': 'secaoInicio',
+        'respostas': 'secaoRespostas',
+        'usuarios': 'formUsuarios',
+        'cupons': 'secaoCupons',
+        'config': 'secaoConfig'
+      };
+      document.getElementById(map[secao]).style.display = 'block';
+      if (secao === 'inicio') carregarNPS();
     }
 
-    function salvarConfiguracoes() {
-      const novaCor = document.getElementById('corFundo').value;
-      const novoBrinde = document.getElementById('brindeConfig').value;
-      document.body.style.setProperty('--cor-fundo', novaCor);
-      localStorage.setItem('brindePadrao', novoBrinde);
-      localStorage.setItem('corFundo', novaCor);
-      alert('Configurações salvas!');
+    async function carregarNPS() {
+      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=atendimento,qualidade,tempo,variedade,custobeneficio,indicacao`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+      const dados = await resposta.json();
+      const nps = (chave) => {
+        const notas = dados.map(d => d[chave]).filter(n => n !== null);
+        const promotores = notas.filter(n => n >= 9).length;
+        const detratores = notas.filter(n => n <= 6).length;
+        return Math.round(((promotores - detratores) / notas.length) * 100);
+      };
+      renderizarGrafico("graficoNPSGeral", "NPS Geral", [nps("indicacao")]);
+      renderizarGrafico("graficoAtendimento", "Atendimento", [nps("atendimento")]);
+      renderizarGrafico("graficoQualidade", "Qualidade", [nps("qualidade")]);
+      renderizarGrafico("graficoTempo", "Tempo", [nps("tempo")]);
+      renderizarGrafico("graficoVariedade", "Variedade", [nps("variedade")]);
     }
 
-    window.onload = () => {
-      const cor = localStorage.getItem('corFundo');
-      const brinde = localStorage.getItem('brindePadrao');
-      if (cor) document.body.style.setProperty('--cor-fundo', cor);
-      if (cor) document.getElementById('corFundo').value = cor;
-      if (brinde) document.getElementById('brindeConfig').value = brinde;
-    };
+    function renderizarGrafico(id, label, dados) {
+      const ctx = document.getElementById(id).getContext("2d");
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: [label],
+          datasets: [{
+            label: "NPS",
+            data: dados,
+            backgroundColor: ["#f97316"]
+          }]
+        },
+        options: {
+          scales: {
+            y: { min: -100, max: 100 }
+          }
+        }
+      });
+    }
+
+    window.onload = () => mostrarSecao('inicio');
   </script>
 </body>
 </html>
