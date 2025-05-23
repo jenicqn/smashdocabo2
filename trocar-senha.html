@@ -9,18 +9,67 @@
 <body class="bg-light">
   <div class="container mt-5">
     <h3 class="mb-4">Trocar Senha</h3>
-    <form>
+    <form id="formSenha">
       <div class="mb-3">
         <label for="novaSenha" class="form-label">Nova Senha</label>
-        <input type="password" class="form-control" id="novaSenha" placeholder="Digite a nova senha">
+        <input type="password" class="form-control" id="novaSenha" required>
       </div>
       <div class="mb-3">
         <label for="confirmarSenha" class="form-label">Confirmar Nova Senha</label>
-        <input type="password" class="form-control" id="confirmarSenha" placeholder="Confirme a nova senha">
+        <input type="password" class="form-control" id="confirmarSenha" required>
       </div>
+      <div class="alert alert-danger d-none" id="erro"></div>
+      <div class="alert alert-success d-none" id="sucesso"></div>
       <button type="submit" class="btn btn-success">Atualizar Senha</button>
       <a href="usuarios.html" class="btn btn-secondary ms-2">Cancelar</a>
     </form>
   </div>
+
+  <script>
+    const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
+    const SUPABASE_KEY = 'SUA_CHAVE_AQUI';
+    const usuarioId = localStorage.getItem('usuario_edicao_id');
+
+    document.getElementById('formSenha').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const senha = document.getElementById('novaSenha').value;
+      const confirmar = document.getElementById('confirmarSenha').value;
+      const erro = document.getElementById('erro');
+      const sucesso = document.getElementById('sucesso');
+      erro.classList.add('d-none');
+      sucesso.classList.add('d-none');
+
+      if (!senha || senha.length < 6) {
+        erro.textContent = 'A senha deve ter pelo menos 6 caracteres.';
+        erro.classList.remove('d-none');
+        return;
+      }
+
+      if (senha !== confirmar) {
+        erro.textContent = 'As senhas não coincidem.';
+        erro.classList.remove('d-none');
+        return;
+      }
+
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/usuarios_painel?id=eq.${usuarioId}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({ senha })
+      });
+
+      if (res.ok) {
+        sucesso.textContent = 'Senha atualizada com sucesso!';
+        sucesso.classList.remove('d-none');
+      } else {
+        erro.textContent = 'Erro ao atualizar a senha.';
+        erro.classList.remove('d-none');
+      }
+    });
+  </script>
 </body>
 </html>
