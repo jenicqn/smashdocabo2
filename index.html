@@ -139,7 +139,7 @@
     }
 
     async function carregarRespostas() {
-      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*`, {
+      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*&limit=25`, {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
@@ -170,7 +170,7 @@
     }
 
     async function carregarCupons() {
-      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/cupons?select=*`, {
+      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/cupons?select=*&limit=50`, {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
