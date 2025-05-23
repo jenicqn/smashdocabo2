@@ -113,60 +113,69 @@
     <div class="row mt-4" id="graficosPizza"></div>
   </div>
 
-  <script>
-    const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
+<script>
+  const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
+  const SUPABASE_ANON_KEY = 'SUA_CHAVE_AQUI';
 
-    async function carregarResumo() {
-      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*`, {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      });
+  async function carregarResumo() {
+    const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    });
 
-      const dados = await resposta.json();
-      const total = dados.length;
-      const promotores = dados.filter(r => r.indicacao >= 9).length;
-      const neutros = dados.filter(r => r.indicacao === 7 || r.indicacao === 8).length;
-      const detratores = dados.filter(r => r.indicacao <= 6).length;
-      const nps = ((promotores - detratores) / total) * 100;
+    const dados = await resposta.json();
+    const total = dados.length;
+    const promotores = dados.filter(r => r.indicacao >= 9).length;
+    const neutros = dados.filter(r => r.indicacao === 7 || r.indicacao === 8).length;
+    const detratores = dados.filter(r => r.indicacao <= 6).length;
+    const nps = ((promotores - detratores) / total) * 100;
 
-      document.getElementById('npsTotal').textContent = nps.toFixed(0);
-      document.getElementById('promotoresTotal').textContent = promotores;
-      document.getElementById('neutrosTotal').textContent = neutros;
-      document.getElementById('detratoresTotal').textContent = detratores;
-      document.getElementById('respostasTotal').textContent = total;
+    document.getElementById('npsTotal').textContent = nps.toFixed(0);
+    document.getElementById('promotoresTotal').textContent = promotores;
+    document.getElementById('neutrosTotal').textContent = neutros;
+    document.getElementById('detratoresTotal').textContent = detratores;
+    document.getElementById('respostasTotal').textContent = total;
 
-      document.getElementById('percentPromotores').textContent = ((promotores / total) * 100).toFixed(1) + '%';
-      document.getElementById('percentNeutros').textContent = ((neutros / total) * 100).toFixed(1) + '%';
-      document.getElementById('percentDetratores').textContent = ((detratores / total) * 100).toFixed(1) + '%';
+    document.getElementById('percentPromotores').textContent = ((promotores / total) * 100).toFixed(1) + '%';
+    document.getElementById('percentNeutros').textContent = ((neutros / total) * 100).toFixed(1) + '%';
+    document.getElementById('percentDetratores').textContent = ((detratores / total) * 100).toFixed(1) + '%';
 
-      desenharGraficos(dados);
-    }
+    desenharGraficos(dados);
+  }
 
-    function desenharGraficos(dados) {
-      const criterios = ['atendimento', 'qualidade', 'tempo', 'variedade', 'custobeneficio'];
-      const container = document.getElementById('graficosPizza');
-      container.innerHTML = '';
+  function desenharGraficos(dados) {
+    const criterios = ['atendimento', 'qualidade', 'tempo', 'variedade', 'custobeneficio'];
+    const container = document.getElementById('graficosPizza');
+    container.innerHTML = '';
 
-      criterios.forEach(criterio => {
-        const validos = dados.filter(r => typeof r[criterio] === 'number');
-        const total = validos.length;
-        const p = validos.filter(r => r[criterio] >= 9).length;
-        const n = validos.filter(r => r[criterio] === 7 || r[criterio] === 8).length;
-        const d = validos.filter(r => r[criterio] <= 6).length;
+    criterios.forEach(criterio => {
+      const validos = dados.filter(r => typeof r[criterio] === 'number');
+      const total = validos.length;
+      const p = validos.filter(r => r[criterio] >= 9).length;
+      const n = validos.filter(r => r[criterio] === 7 || r[criterio] === 8).length;
+      const d = validos.filter(r => r[criterio] <= 6).length;
 
-        let cor = 'verde';
-        if (n > p && n > d) cor = 'amarelo';
-        else if (d > p && d > n) cor = 'vermelho';
+      let cor = 'verde';
+      if (n > p && n > d) cor = 'amarelo';
+      else if (d > p && d > n) cor = 'vermelho';
 
-        const percentPromotores = total ? Math.round((p / total) * 100) : 0;
+      const percentPromotores = total ? Math.round((p / total) * 100) : 0;
 
-        const bloco = document.createElement('div');
-        bloco.className = 'col-lg-2 col-md-3 col-sm-4 grafico-item';
+      const bloco = document.createElement('div');
+      bloco.className = 'col-lg-2 col-md-3 col-sm-4 grafico-item';
+      bloco.innerHTML = `
+        <h6 class="mb-2">${criterio.charAt(0).toUpperCase() + criterio.slice(1)}</h6>
+        <div class="circulo ${cor}">
+          ${percentPromotores}%
+        </div>
+      `;
+      container.appendChild(bloco);
+    });
+  }
 
-        bloco.innerHTML = `
-          <h6 class="mb-2">${criterio.charAt(0).toUpperCase() + criterio.slice(1)}</h6>
-          <div class="circulo ${cor}">
-            ${percentPromot
+  carregarResumo();
+</script>
+</body>
+</html>
