@@ -1,250 +1,123 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Painel Smash do Cabo</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>Pesquisa Smash do Cabo</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      background-color: #f4f6fa;
+    body { font-family: Arial, sans-serif; margin: 30px; }
+    label { display: block; margin: 15px 0 5px; font-weight: bold;}
+    .estrelas input {display:none;}
+    .estrelas label {
+      font-size: 2em; color: #ccc; cursor: pointer;
+      display: inline-block; margin-right: 5px;
     }
-    .sidebar {
-      position: fixed;
-      width: 240px;
-      height: 100vh;
-      background-color: #0f172a;
-      color: #fff;
-      padding-top: 20px;
-    }
-    .sidebar h2 {
-  font-size: 18px;
-  padding: 10px 20px;
-  color: #fff;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #2d3748;
-}
-
-    .sidebar a {
-      display: block;
-      padding: 12px 20px;
-      color: white;
-      text-decoration: none;
-    }
-    .sidebar a:hover, .sidebar a.active {
-      background-color: #1e293b;
-      border-left: 4px solid #f97316;
-    }
-    .content {
-      margin-left: 240px;
-      padding: 30px;
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .btn-sair {
-      background-color: #dc3545;
-      border: none;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 5px;
-    }
-    .dashboard {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      margin-top: 20px;
-    }
-    .card-block {
-      flex: 1;
-      min-width: 200px;
-      background: #fff;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 0 6px rgba(0,0,0,0.1);
-      border-left: 6px solid;
-    }
-    .border-success { border-color: #198754 !important; }
-    .border-warning { border-color: #ffc107 !important; }
-    .border-danger { border-color: #dc3545 !important; }
-    .border-primary { border-color: #0d6efd !important; }
-
-    .circulo {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      border: 6px solid #dc3545;
-      background: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 20px auto;
-      font-weight: bold;
-      font-size: 20px;
-    }
-    .circulo.verde { border-color: #198754; }
-    .circulo.amarelo { border-color: #ffc107; }
-    .circulo.vermelho { border-color: #dc3545; }
-    table td, table th {
-      vertical-align: middle;
-    }
+    .estrelas input:checked ~ label,
+    .estrelas label:hover,
+    .estrelas label:hover ~ label { color: gold; }
+    .linha { margin-bottom: 20px;}
   </style>
 </head>
 <body>
-
-  <div class="sidebar">
-    <a href="painel.html" class="active">Início</a>
-    <a href="respostas.html">Gestão das Respostas</a>
-    <a href="usuarios.html">Usuários</a>
-    <a href="cupons.html">Cupons</a>
-  </div>
-
-  <div class="content">
-    <div class="header mb-3">
-      <h2>Painel Smash do Cabo</h2>
-      <div>
-        <strong>Olá, Jeniffer Adm</strong>
-        <button onclick="logout()" class="btn-sair ms-2">Sair</button>
-      </div>
+  <h1>Pesquisa de Satisfação - Smash do Cabo</h1>
+  <form action="https://formsubmit.co/SEU_EMAIL_AQUI" method="POST">
+    <div class="linha">
+      <label>Você é morador da cidade? *</label>
+      <input type="radio" name="morador" value="Sim, sou morador" required> Sim, sou morador
+      <input type="radio" name="morador" value="Não, sou turista" required> Não, sou turista
     </div>
 
-    <div class="dashboard">
-      <div class="card-block border-success">
-        <h5>NPS</h5>
-        <div id="npsTotal">-</div>
-      </div>
-      <div class="card-block border-success">
-        <h5>Promotores</h5>
-        <div id="promotoresTotal">-</div>
-        <small id="percentPromotores">-</small>
-      </div>
-      <div class="card-block border-warning">
-        <h5>Neutros</h5>
-        <div id="neutrosTotal">-</div>
-        <small id="percentNeutros">-</small>
-      </div>
-      <div class="card-block border-danger">
-        <h5>Detratores</h5>
-        <div id="detratoresTotal">-</div>
-        <small id="percentDetratores">-</small>
-      </div>
-      <div class="card-block border-primary">
-        <h5>Respostas</h5>
-        <div id="respostasTotal">-</div>
-      </div>
+    <div class="linha">
+      <label>Como você avalia o nosso ATENDIMENTO? *</label>
+      <span class="estrelas">
+        <input type="radio" id="at5" name="atendimento" value="5" required><label for="at5">&#9733;</label>
+        <input type="radio" id="at4" name="atendimento" value="4"><label for="at4">&#9733;</label>
+        <input type="radio" id="at3" name="atendimento" value="3"><label for="at3">&#9733;</label>
+        <input type="radio" id="at2" name="atendimento" value="2"><label for="at2">&#9733;</label>
+        <input type="radio" id="at1" name="atendimento" value="1"><label for="at1">&#9733;</label>
+      </span>
     </div>
 
-    <div class="row text-center mt-5" id="circulosGraficos"></div>
-
-    <div class="mt-5">
-      <h5>Últimas Respostas</h5>
-      <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-          <thead class="table-light">
-            <tr>
-              <th>Data</th>
-              <th>Nome</th>
-              <th>Sugestão</th>
-              <th>Morador</th>
-              <th>Qualidade</th>
-              <th>Tempo</th>
-              <th>Variedade</th>
-              <th>Custo-benefício</th>
-            </tr>
-          </thead>
-          <tbody id="tabela-respostas"></tbody>
-        </table>
-      </div>
+    <div class="linha">
+      <label>Como você avalia a QUALIDADE DOS NOSSOS PRODUTOS? *</label>
+      <span class="estrelas">
+        <input type="radio" id="prod5" name="qualidade" value="5" required><label for="prod5">&#9733;</label>
+        <input type="radio" id="prod4" name="qualidade" value="4"><label for="prod4">&#9733;</label>
+        <input type="radio" id="prod3" name="qualidade" value="3"><label for="prod3">&#9733;</label>
+        <input type="radio" id="prod2" name="qualidade" value="2"><label for="prod2">&#9733;</label>
+        <input type="radio" id="prod1" name="qualidade" value="1"><label for="prod1">&#9733;</label>
+      </span>
     </div>
-  </div>
 
-<script>
-  const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUz...'; // Mantenha sua key segura
+    <div class="linha">
+      <label>Como você avalia o nosso TEMPO DE ESPERA? *</label>
+      <span class="estrelas">
+        <input type="radio" id="tempo5" name="tempo" value="5" required><label for="tempo5">&#9733;</label>
+        <input type="radio" id="tempo4" name="tempo" value="4"><label for="tempo4">&#9733;</label>
+        <input type="radio" id="tempo3" name="tempo" value="3"><label for="tempo3">&#9733;</label>
+        <input type="radio" id="tempo2" name="tempo" value="2"><label for="tempo2">&#9733;</label>
+        <input type="radio" id="tempo1" name="tempo" value="1"><label for="tempo1">&#9733;</label>
+      </span>
+    </div>
 
-  async function carregarResumo() {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*`, {
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`
-      }
-    });
-    const dados = await res.json();
-    const total = dados.length;
-    const promotores = dados.filter(r => r.indicacao >= 9).length;
-    const neutros = dados.filter(r => r.indicacao === 7 || r.indicacao === 8).length;
-    const detratores = dados.filter(r => r.indicacao <= 6).length;
-    const nps = ((promotores - detratores) / total) * 100;
+    <div class="linha">
+      <label>Como você avalia as nossas OPÇÕES E VARIEDADES DE PRODUTOS? *</label>
+      <span class="estrelas">
+        <input type="radio" id="var5" name="variedade" value="5" required><label for="var5">&#9733;</label>
+        <input type="radio" id="var4" name="variedade" value="4"><label for="var4">&#9733;</label>
+        <input type="radio" id="var3" name="variedade" value="3"><label for="var3">&#9733;</label>
+        <input type="radio" id="var2" name="variedade" value="2"><label for="var2">&#9733;</label>
+        <input type="radio" id="var1" name="variedade" value="1"><label for="var1">&#9733;</label>
+      </span>
+    </div>
 
-    document.getElementById('npsTotal').textContent = isNaN(nps) ? '-' : nps.toFixed(0);
-    document.getElementById('promotoresTotal').textContent = promotores;
-    document.getElementById('neutrosTotal').textContent = neutros;
-    document.getElementById('detratoresTotal').textContent = detratores;
-    document.getElementById('respostasTotal').textContent = total;
-    document.getElementById('percentPromotores').textContent = ((promotores / total) * 100).toFixed(1) + '%';
-    document.getElementById('percentNeutros').textContent = ((neutros / total) * 100).toFixed(1) + '%';
-    document.getElementById('percentDetratores').textContent = ((detratores / total) * 100).toFixed(1) + '%';
+    <div class="linha">
+      <label>Como você avalia o nosso CUSTO-BENEFÍCIO? *</label>
+      <span class="estrelas">
+        <input type="radio" id="cb5" name="custobeneficio" value="5" required><label for="cb5">&#9733;</label>
+        <input type="radio" id="cb4" name="custobeneficio" value="4"><label for="cb4">&#9733;</label>
+        <input type="radio" id="cb3" name="custobeneficio" value="3"><label for="cb3">&#9733;</label>
+        <input type="radio" id="cb2" name="custobeneficio" value="2"><label for="cb2">&#9733;</label>
+        <input type="radio" id="cb1" name="custobeneficio" value="1"><label for="cb1">&#9733;</label>
+      </span>
+    </div>
 
-    desenharCirculos(dados);
-    carregarTabela(dados);
-  }
+    <div class="linha">
+      <label>Como você chegou até a loja? *</label>
+      <select name="origem" required>
+        <option value="">Selecione</option>
+        <option value="Google">Google</option>
+        <option value="Instagram">Instagram</option>
+        <option value="TikTok">TikTok</option>
+        <option value="Influencer">Influencer</option>
+        <option value="Passando em frente">Passando em frente</option>
+        <option value="Outros">Outros</option>
+      </select>
+    </div>
 
-  function desenharCirculos(dados) {
-    const criterios = ['atendimento', 'qualidade', 'tempo', 'variedade', 'custobeneficio'];
-    const container = document.getElementById('circulosGraficos');
-    container.innerHTML = '';
+    <div class="linha">
+      <label>O que você acredita que FALTA no Smash do Cabo?</label>
+      <input type="text" name="falta" maxlength="200" placeholder="Resposta curta">
+    </div>
 
-    criterios.forEach(criterio => {
-      const validos = dados.filter(d => typeof d[criterio] === 'number');
-      const total = validos.length;
-      const prom = validos.filter(d => d[criterio] >= 9).length;
-      const neutros = validos.filter(d => d[criterio] === 7 || d[criterio] === 8).length;
-      const detratores = validos.filter(d => d[criterio] <= 6).length;
+    <div class="linha">
+      <label>Em uma escala de 0 a 10 o quanto você indicaria o Smash do Cabo para um amigo ou familiar? *</label>
+      <select name="indicacao" required>
+        <option value="">Selecione</option>
+        <option value="0">0</option><option value="1">1</option>
+        <option value="2">2</option><option value="3">3</option>
+        <option value="4">4</option><option value="5">5</option>
+        <option value="6">6</option><option value="7">7</option>
+        <option value="8">8</option><option value="9">9</option>
+        <option value="10">10</option>
+      </select>
+    </div>
 
-      let cor = 'verde';
-      if (neutros > prom && neutros > detratores) cor = 'amarelo';
-      else if (detratores > prom) cor = 'vermelho';
+    <div class="linha">
+      <label>Coloque aqui sua sugestão ou elogio para a Smash do Cabo:</label>
+      <textarea name="sugestao" rows="3" cols="50" placeholder="Escreva sua sugestão ou elogio"></textarea>
+    </div>
 
-      const p = total ? Math.round((prom / total) * 100) : 0;
-
-      container.innerHTML += `
-        <div class="col text-center">
-          <h6>${criterio.charAt(0).toUpperCase() + criterio.slice(1)}</h6>
-          <div class="circulo ${cor}">${p}%</div>
-        </div>`;
-    });
-  }
-
-  function carregarTabela(dados) {
-    const linhas = dados
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      .slice(0, 20)
-      .map(d => `
-        <tr>
-          <td>${new Date(d.created_at).toLocaleString()}</td>
-          <td>${d.nome || '-'}</td>
-          <td>${d.sugestao || '-'}</td>
-          <td>${d.morador || '-'}</td>
-          <td>${d.qualidade ?? '-'}</td>
-          <td>${d.tempo ?? '-'}</td>
-          <td>${d.variedade ?? '-'}</td>
-          <td>${d.custobeneficio ?? '-'}</td>
-        </tr>
-      `).join('');
-
-    document.getElementById('tabela-respostas').innerHTML = linhas;
-  }
-
-  function logout() {
-    localStorage.removeItem('usuarioLogado');
-    window.location.href = 'login.html';
-  }
-
-  carregarResumo();
-</script>
+    <button type="submit">Enviar</button>
+  </form>
 </body>
 </html>
