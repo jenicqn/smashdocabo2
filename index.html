@@ -109,13 +109,12 @@
     </div>
   </div>
 
-  <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const client = window.supabase.createClient(
-    'https://kwktdbinfadztnkghuul.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
-  );
+  const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // sua chave real
+
+  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   async function logar() {
     const email = document.getElementById('email').value.trim();
@@ -126,21 +125,15 @@
       erro.textContent = "Preencha todos os campos";
       return;
     }
-      const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
 
-      const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/usuarios_painel?email=eq.${email}`, {
-  headers: {
-    'apikey': SUPABASE_KEY,
-    'Authorization': 'Bearer ' + SUPABASE_KEY,
-    'Content-Type': 'application/json'
-  }
-});
-
-
-
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY,
+          'Content-Type': 'application/json'
+        }
+      });
 
       const data = await res.json();
 
@@ -153,6 +146,7 @@
       window.location.href = "painel.html";
     } catch (e) {
       erro.textContent = "Erro ao conectar com o servidor";
+      console.error(e);
     }
   }
 
@@ -161,7 +155,7 @@
     if (!email) return;
 
     try {
-      const { data, error } = await client.auth.resetPasswordForEmail(email, {
+      const { error } = await client.auth.resetPasswordForEmail(email, {
         redirectTo: 'https://painel.smashdocabo.com/reset.html'
       });
 
@@ -177,6 +171,8 @@
     }
   }
 </script>
+
+  
 
   
 </body>
