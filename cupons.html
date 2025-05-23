@@ -143,23 +143,30 @@
     }
 
     async function darBaixa(codigo) {
-      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/cupons?codigo=eq.${codigo}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ utilizado: true, data_utilizado: new Date().toISOString() })
-      });
+  const resposta = await fetch(`${SUPABASE_URL}/rest/v1/cupons?codigo=eq.${codigo}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify({
+      utilizado: true,
+      data_utilizado: new Date().toISOString()
+    })
+  });
 
-      if (resposta.ok) {
-        console.log('Cupom atualizado');
-        carregarCupons();
-      } else {
-        alert('Erro ao dar baixa no cupom.');
-      }
-    }
+  const resultado = await resposta.json().catch(() => ({}));
+  console.log('Resultado da atualização:', resultado);
+
+  if (resposta.ok) {
+    carregarCupons();
+  } else {
+    alert('Erro ao dar baixa no cupom.');
+  }
+}
+
 
     carregarCupons();
   </script>
