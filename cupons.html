@@ -57,22 +57,10 @@
     }
     .badge-utilizado {
       background-color: #22c55e;
-      color: white;
-      padding: 3px 6px;
-      border-radius: 6px;
-      font-size: 12px;
     }
     .badge-disponivel {
       background-color: #facc15;
       color: black;
-      padding: 3px 6px;
-      border-radius: 6px;
-      font-size: 12px;
-    }
-    .small-text {
-      display: block;
-      font-size: 10px;
-      margin-top: 4px;
     }
   </style>
 </head>
@@ -110,7 +98,7 @@
 
   <script>
     const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGci...'; // encurtado por segurança
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
 
     const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
     if (!usuario) window.location.href = 'login.html';
@@ -129,32 +117,35 @@
         }
       });
       const dados = await resposta.json();
+      console.log("🧾 Cupons carregados:", dados);
       const tbody = document.querySelector('#tabela-cupons tbody');
       tbody.innerHTML = '';
 
       dados.reverse().forEach(cupom => {
-        const status = cupom.utilizado
-          ? `<span class="badge-utilizado">Utilizado<br><span class="small-text">${new Date(cupom.data_utilizado).toLocaleString('pt-BR')}</span></span>`
-          : `<span class="badge-disponivel">Disponível</span>`;
+        const linha = document.createElement('tr');
 
-        const acao = cupom.utilizado
+        const statusHtml = cupom.utilizado
+          ? `<span class="badge badge-utilizado">Utilizado<br><small>${new Date(cupom.data_utilizado).toLocaleString('pt-BR')}</small></span>`
+          : `<span class="badge badge-disponivel">Disponível</span>`;
+
+        const botaoBaixa = cupom.utilizado
           ? '-'
           : `<button class="btn btn-sm btn-danger" onclick="darBaixa('${cupom.codigo}')">Dar baixa</button>`;
 
-        const linha = document.createElement('tr');
         linha.innerHTML = `
           <td>${cupom.codigo}</td>
-          <td>${cupom.cliente_nome || ''}<br><small>${cupom.cliente_telefone || ''}</small></td>
+          <td>${cupom.cliente_nome}<br><small>${cupom.cliente_telefone}</small></td>
           <td>${cupom.brinde}</td>
           <td>${new Date(cupom.valido_ate).toLocaleDateString('pt-BR')}</td>
-          <td>${status}</td>
-          <td>${acao}</td>
+          <td>${statusHtml}</td>
+          <td>${botaoBaixa}</td>
         `;
         tbody.appendChild(linha);
       });
     }
 
     async function darBaixa(codigo) {
+      const agora = new Date().toISOString();
       const resposta = await fetch(`${SUPABASE_URL}/rest/v1/cupons?codigo=eq.${codigo}`, {
         method: 'PATCH',
         headers: {
@@ -162,17 +153,14 @@
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          utilizado: true,
-          data_utilizado: new Date().toISOString()
-        })
+        body: JSON.stringify({ utilizado: true, data_utilizado: agora })
       });
 
       if (resposta.ok) {
-        console.log('✅ Cupom atualizado');
+        console.log("✅ Cupom atualizado");
         carregarCupons();
       } else {
-        alert('Erro ao dar baixa no cupom.');
+        alert("❌ Erro ao dar baixa no cupom.");
       }
     }
 
