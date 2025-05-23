@@ -121,7 +121,6 @@
       z-index: 1000;
       border-radius: 5px;
     }
-
   </style>
 </head>
 <body>
@@ -172,22 +171,22 @@
   </div>
 
   <script>
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('active');
-    }
-
-    function logout() {
-      localStorage.removeItem('usuario');
-      window.location.href = "index.html";
-    }
-
     const usuario = localStorage.getItem("usuario");
     if (!usuario) {
       window.location.href = "index.html";
     }
 
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    function logout() {
+      localStorage.removeItem("usuario");
+      window.location.href = "index.html";
+    }
+
     const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const SUPABASE_ANON_KEY = 'SEU_SUPABASE_ANON_KEY_AQUI';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
 
     async function carregarResumo() {
       try {
@@ -199,8 +198,7 @@
         });
 
         const dados = await resposta.json();
-
-        if (!Array.isArray(dados)) throw new Error("Dados inválidos");
+        if (!Array.isArray(dados)) throw new Error("Resposta inválida");
 
         const total = dados.length;
         const promotores = dados.filter(r => r.indicacao >= 9).length;
@@ -217,7 +215,6 @@
         document.getElementById('percentPromotores').textContent = ((promotores / total) * 100).toFixed(1) + '%';
         document.getElementById('percentNeutros').textContent = ((neutros / total) * 100).toFixed(1) + '%';
         document.getElementById('percentDetratores').textContent = ((detratores / total) * 100).toFixed(1) + '%';
-
       } catch (e) {
         console.error("Erro ao carregar dados:", e);
       }
