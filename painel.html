@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel Smash do Cabo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -30,7 +30,7 @@
     .sidebar a:hover,
     .sidebar a.active {
       background-color: #ffa94d;
-      border-left: 4px solid black;
+      border-left: 4px solid #000;
     }
     .content {
       margin-left: 240px;
@@ -41,17 +41,43 @@
       justify-content: space-between;
       align-items: center;
     }
-    .btn-sair {
-      background-color: #dc3545;
+    .logout-btn {
+      background: #dc3545;
       color: white;
       border: none;
       padding: 6px 12px;
       border-radius: 4px;
       cursor: pointer;
     }
-    .resumo-table th {
-      background-color: #eaeaea;
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
     }
+    .card-block {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
+    }
+    .circulo {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 18px;
+      background: #fff;
+      margin: 0 auto;
+      border: 6px solid #ccc;
+    }
+    .circulo.verde { border-color: #198754; }
+    .circulo.amarelo { border-color: #ffc107; }
+    .circulo.vermelho { border-color: #dc3545; }
+    .grafico-item { text-align: center; margin-bottom: 30px; }
   </style>
 </head>
 <body>
@@ -61,49 +87,71 @@
     <a href="usuarios.html">Usuários</a>
     <a href="cupons.html">Cupons</a>
   </div>
-
   <div class="content">
     <div class="header">
       <h2>Painel Smash do Cabo</h2>
       <div>
         <strong>Olá, Jeniffer Adm</strong>
-        <button class="btn-sair" onclick="logout()">Sair</button>
+        <button class="logout-btn" onclick="logout()">Sair</button>
       </div>
     </div>
 
-    <div class="row mt-4">
-      <div class="col-md-12">
-        <h5>Últimas 20 Respostas</h5>
-        <div class="table-responsive">
-          <table class="table table-bordered resumo-table" id="tabela-resumo">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Nome</th>
-                <th>Qualidade</th>
-                <th>Custo-benefício</th>
-                <th>É Morador?</th>
-                <th>Sugestão</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
+    <div class="dashboard">
+      <div class="card-block border-start border-success border-4">
+        <h5>NPS</h5>
+        <div id="npsTotal">-</div>
+      </div>
+      <div class="card-block border-start border-success border-4">
+        <h5>Promotores</h5>
+        <div id="promotoresTotal">-</div>
+        <small id="percentPromotores">-</small>
+      </div>
+      <div class="card-block border-start border-warning border-4">
+        <h5>Neutros</h5>
+        <div id="neutrosTotal">-</div>
+        <small id="percentNeutros">-</small>
+      </div>
+      <div class="card-block border-start border-danger border-4">
+        <h5>Detratores</h5>
+        <div id="detratoresTotal">-</div>
+        <small id="percentDetratores">-</small>
+      </div>
+      <div class="card-block border-start border-primary border-4">
+        <h5>Respostas</h5>
+        <div id="respostasTotal">-</div>
       </div>
     </div>
+
+    <div class="row mt-4" id="graficosPizza"></div>
+
+    <h4 class="mt-5">Últimas Sugestões</h4>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Nome</th>
+          <th>Sugestão</th>
+          <th>Morador</th>
+          <th>Qualidade</th>
+          <th>Tempo</th>
+          <th>Variedade</th>
+          <th>Custo-benefício</th>
+        </tr>
+      </thead>
+      <tbody id="sugestoesTabela"></tbody>
+    </table>
   </div>
 
   <script>
     const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOi...'; // sua chave real
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
 
     function logout() {
-      localStorage.removeItem("usuarioLogado");
-      window.location.href = "index.html";
+      alert('Logout feito.');
     }
 
-    async function carregarUltimasRespostas() {
-      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*&order=created_at.desc&limit=20`, {
+    async function carregarResumo() {
+      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*`, {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
@@ -111,24 +159,77 @@
       });
 
       const dados = await resposta.json();
-      const tbody = document.querySelector('#tabela-resumo tbody');
-      tbody.innerHTML = '';
+      const total = dados.length;
+      const promotores = dados.filter(r => r.indicacao >= 9).length;
+      const neutros = dados.filter(r => r.indicacao === 7 || r.indicacao === 8).length;
+      const detratores = dados.filter(r => r.indicacao <= 6).length;
+      const nps = ((promotores - detratores) / total) * 100;
 
-      dados.forEach(resposta => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${new Date(resposta.created_at).toLocaleString()}</td>
-          <td>${resposta.nome || '-'}</td>
-          <td>${resposta.qualidade ?? '-'}</td>
-          <td>${resposta.custobeneficio ?? '-'}</td>
-          <td>${resposta.morador ?? '-'}</td>
-          <td>${resposta.falta ?? '-'}</td>
+      document.getElementById('npsTotal').textContent = nps.toFixed(0);
+      document.getElementById('promotoresTotal').textContent = promotores;
+      document.getElementById('neutrosTotal').textContent = neutros;
+      document.getElementById('detratoresTotal').textContent = detratores;
+      document.getElementById('respostasTotal').textContent = total;
+      document.getElementById('percentPromotores').textContent = ((promotores / total) * 100).toFixed(1) + '%';
+      document.getElementById('percentNeutros').textContent = ((neutros / total) * 100).toFixed(1) + '%';
+      document.getElementById('percentDetratores').textContent = ((detratores / total) * 100).toFixed(1) + '%';
+
+      desenharGraficos(dados);
+      preencherTabela(dados);
+    }
+
+    function desenharGraficos(dados) {
+      const criterios = ['atendimento', 'qualidade', 'tempo', 'variedade', 'custobeneficio'];
+      const container = document.getElementById('graficosPizza');
+      container.innerHTML = '';
+
+      criterios.forEach(criterio => {
+        const validos = dados.filter(r => typeof r[criterio] === 'number');
+        const total = validos.length;
+        const p = validos.filter(r => r[criterio] >= 9).length;
+        const n = validos.filter(r => r[criterio] === 7 || r[criterio] === 8).length;
+        const d = validos.filter(r => r[criterio] <= 6).length;
+
+        let cor = 'verde';
+        if (n > p && n > d) cor = 'amarelo';
+        else if (d > p && d > n) cor = 'vermelho';
+
+        const percentPromotores = total ? Math.round((p / total) * 100) : 0;
+
+        const bloco = document.createElement('div');
+        bloco.className = 'col-lg-2 col-md-3 col-sm-4 grafico-item';
+        bloco.innerHTML = `
+          <h6 class="mb-2">${criterio.charAt(0).toUpperCase() + criterio.slice(1)}</h6>
+          <div class="circulo ${cor}">
+            ${percentPromotores}%
+          </div>
         `;
-        tbody.appendChild(tr);
+        container.appendChild(bloco);
       });
     }
 
-    carregarUltimasRespostas();
+    function preencherTabela(dados) {
+      const ultimos = dados.slice(-20).reverse();
+      const corpo = document.getElementById('sugestoesTabela');
+      corpo.innerHTML = '';
+
+      ultimos.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${new Date(item.created_at).toLocaleString()}</td>
+          <td>${item.nome || ''}</td>
+          <td>${item.sugestao || ''}</td>
+          <td>${item.morador || '-'}</td>
+          <td>${item.qualidade ?? '-'}</td>
+          <td>${item.tempo ?? '-'}</td>
+          <td>${item.variedade ?? '-'}</td>
+          <td>${item.custobeneficio ?? '-'}</td>
+        `;
+        corpo.appendChild(tr);
+      });
+    }
+
+    carregarResumo();
   </script>
 </body>
 </html>
