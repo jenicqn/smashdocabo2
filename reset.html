@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Redefinir Senha</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+      background: #f97316;
+      color: #fff;
+    }
+    .box {
+      background: white;
+      color: #000;
+      padding: 30px;
+      border-radius: 12px;
+      width: 300px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #f97316;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Nova senha</h2>
+    <input type="password" id="novaSenha" placeholder="Digite a nova senha" />
+    <button onclick="atualizarSenha()">Atualizar</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabase = supabase.createClient(
+      'https://kwktdbinfadztnkghuul.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
+    );
+
+    async function atualizarSenha() {
+      const novaSenha = document.getElementById('novaSenha').value;
+      const { data, error } = await supabase.auth.updateUser({ password: novaSenha });
+
+      if (error) {
+        alert("Erro ao redefinir senha.");
+      } else {
+        alert("Senha atualizada com sucesso!");
+        window.location.href = "index.html";
+      }
+    }
+  </script>
+</body>
+</html>
