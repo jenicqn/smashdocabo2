@@ -55,13 +55,6 @@
     .table th {
       background-color: #eaeaea;
     }
-    .badge-utilizado {
-      background-color: #22c55e;
-    }
-    .badge-disponivel {
-      background-color: #facc15;
-      color: black;
-    }
   </style>
 </head>
 <body>
@@ -117,28 +110,30 @@
         }
       });
       const dados = await resposta.json();
-      console.log("🧾 Cupons carregados:", dados);
       const tbody = document.querySelector('#tabela-cupons tbody');
       tbody.innerHTML = '';
 
       dados.reverse().forEach(cupom => {
         const linha = document.createElement('tr');
 
-        const statusHtml = cupom.utilizado
-          ? `<span class="badge badge-utilizado">Utilizado<br><small>${new Date(cupom.data_utilizado).toLocaleString('pt-BR')}</small></span>`
-          : `<span class="badge badge-disponivel">Disponível</span>`;
+        const statusHTML = cupom.utilizado
+          ? `<span class="badge bg-success">Utilizado<br><small>${new Date(cupom.data_utilizado).toLocaleString('pt-BR')}</small></span>`
+          : `<span class="badge bg-warning text-dark">Disponível</span>`;
 
-        const botaoBaixa = cupom.utilizado
-          ? '-'
+        const botaoHTML = cupom.utilizado
+          ? ''
           : `<button class="btn btn-sm btn-danger" onclick="darBaixa('${cupom.codigo}')">Dar baixa</button>`;
 
         linha.innerHTML = `
           <td>${cupom.codigo}</td>
-          <td>${cupom.cliente_nome}<br><small>${cupom.cliente_telefone}</small></td>
+          <td>
+            ${cupom.cliente_nome || ''}<br>
+            <small>${cupom.cliente_telefone || ''}</small>
+          </td>
           <td>${cupom.brinde}</td>
           <td>${new Date(cupom.valido_ate).toLocaleDateString('pt-BR')}</td>
-          <td>${statusHtml}</td>
-          <td>${botaoBaixa}</td>
+          <td>${statusHTML}</td>
+          <td>${botaoHTML}</td>
         `;
         tbody.appendChild(linha);
       });
@@ -155,12 +150,11 @@
         },
         body: JSON.stringify({ utilizado: true, data_utilizado: agora })
       });
-
       if (resposta.ok) {
-        console.log("✅ Cupom atualizado");
+        console.log('Cupom atualizado');
         carregarCupons();
       } else {
-        alert("❌ Erro ao dar baixa no cupom.");
+        alert('Erro ao dar baixa no cupom.');
       }
     }
 
