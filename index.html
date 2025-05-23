@@ -7,7 +7,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      background-color: #f4f6fa;
+      background-color: var(--cor-fundo, #f4f6fa);
       margin: 0;
       display: flex;
     }
@@ -45,7 +45,7 @@
       background-color: #25D366;
       color: white;
     }
-    #formUsuarios, #secaoCupons {
+    #formUsuarios, #secaoCupons, #secaoConfig {
       display: none;
     }
   </style>
@@ -123,6 +123,19 @@
         <tbody></tbody>
       </table>
     </div>
+
+    <div class="container mt-4" id="secaoConfig" style="max-width: 500px;">
+      <h4>Configurações</h4>
+      <div class="mb-3">
+        <label for="brindeConfig" class="form-label">Brinde atual</label>
+        <input type="text" id="brindeConfig" class="form-control" value="1 Soda Italiana">
+      </div>
+      <div class="mb-3">
+        <label for="corFundo" class="form-label">Cor de fundo (hex)</label>
+        <input type="color" id="corFundo" class="form-control form-control-color" value="#f4f6fa">
+      </div>
+      <button onclick="salvarConfiguracoes()" class="btn btn-success">Salvar Configurações</button>
+    </div>
   </div>
 
   <script>
@@ -138,113 +151,30 @@
       window.location.href = 'login.html';
     }
 
-    async function carregarRespostas() {
-      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*&limit=25`, {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const dados = await resposta.json();
-      const tbody = document.querySelector('#tabela-respostas tbody');
-      tbody.innerHTML = '';
-
-      dados.reverse().forEach(resposta => {
-        const linha = document.createElement('tr');
-        linha.innerHTML = `
-          <td>${new Date(resposta.created_at).toLocaleString()}</td>
-          <td>${resposta.nome}</td>
-          <td>${resposta.telefone}</td>
-          <td>${resposta.email}</td>
-          <td>${resposta.morador}</td>
-          <td>${resposta.atendimento ?? '-'}</td>
-          <td>${resposta.sugestao ?? '-'}</td>
-          <td class="text-center">
-            <a href="https://wa.me/55${resposta.telefone.replace(/[^0-9]/g, '')}" target="_blank" class="btn btn-sm btn-whatsapp">WhatsApp</a>
-          </td>
-        `;
-        tbody.appendChild(linha);
-      });
-    }
-
-    async function carregarCupons() {
-      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/cupons?select=*&limit=50`, {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      });
-
-      const dados = await resposta.json();
-      const tbody = document.querySelector('#tabela-cupons tbody');
-      tbody.innerHTML = '';
-
-      dados.reverse().forEach(cupom => {
-        const linha = document.createElement('tr');
-        linha.innerHTML = `
-          <td>${cupom.codigo}</td>
-          <td>${cupom.cliente_nome}</td>
-          <td>${cupom.brinde}</td>
-          <td>${cupom.valido_ate}</td>
-          <td>${cupom.utilizado ? 'Utilizado' : 'Não utilizado'}</td>
-          <td>
-            ${!cupom.utilizado ? `<button class="btn btn-sm btn-success" onclick="marcarComoUsado('${cupom.codigo}')">Dar baixa</button>` : '✔️'}
-          </td>
-        `;
-        tbody.appendChild(linha);
-      });
-    }
-
-    async function marcarComoUsado(codigo) {
-      await fetch(`${SUPABASE_URL}/rest/v1/cupons?codigo=eq.${codigo}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ utilizado: true })
-      });
-      carregarCupons();
-    }
-
-    async function adicionarUsuario(event) {
-      event.preventDefault();
-      const nome = document.getElementById('nome').value;
-      const email = document.getElementById('email').value;
-      const senha = document.getElementById('senha').value;
-
-      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/usuarios_painel`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ nome, email, senha, acesso: 'comum' })
-      });
-
-      const mensagem = document.getElementById('mensagemUsuario');
-      if (resposta.ok) {
-        mensagem.innerHTML = '<span class="text-success">Usuário cadastrado com sucesso!</span>';
-        document.getElementById('nome').value = '';
-        document.getElementById('email').value = '';
-        document.getElementById('senha').value = '';
-      } else {
-        mensagem.innerHTML = '<span class="text-danger">Erro ao cadastrar usuário.</span>';
-      }
-    }
-
     function mostrarSecao(secao) {
       document.getElementById('secaoRespostas').style.display = secao === 'respostas' ? 'block' : 'none';
       document.getElementById('formUsuarios').style.display = secao === 'usuarios' ? 'block' : 'none';
       document.getElementById('secaoCupons').style.display = secao === 'cupons' ? 'block' : 'none';
+      document.getElementById('secaoConfig').style.display = secao === 'config' ? 'block' : 'none';
       if (secao === 'cupons') carregarCupons();
     }
 
-    carregarRespostas();
+    function salvarConfiguracoes() {
+      const novaCor = document.getElementById('corFundo').value;
+      const novoBrinde = document.getElementById('brindeConfig').value;
+      document.body.style.setProperty('--cor-fundo', novaCor);
+      localStorage.setItem('brindePadrao', novoBrinde);
+      localStorage.setItem('corFundo', novaCor);
+      alert('Configurações salvas!');
+    }
+
+    window.onload = () => {
+      const cor = localStorage.getItem('corFundo');
+      const brinde = localStorage.getItem('brindePadrao');
+      if (cor) document.body.style.setProperty('--cor-fundo', cor);
+      if (cor) document.getElementById('corFundo').value = cor;
+      if (brinde) document.getElementById('brindeConfig').value = brinde;
+    };
   </script>
 </body>
 </html>
