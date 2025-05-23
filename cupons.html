@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Cupons</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
     body {
       background-color: #f4f6fa;
@@ -52,8 +52,15 @@
       margin-left: 10px;
       cursor: pointer;
     }
-    .table th {
-      background-color: #eaeaea;
+    .badge-utilizado {
+      background-color: #22c55e;
+      color: white;
+      font-weight: 500;
+    }
+    .badge-disponivel {
+      background-color: #facc15;
+      color: black;
+      font-weight: 500;
     }
   </style>
 </head>
@@ -110,19 +117,16 @@
         }
       });
       const dados = await resposta.json();
+      console.log('Cupons carregados:', dados);
       const tbody = document.querySelector('#tabela-cupons tbody');
       tbody.innerHTML = '';
 
-      dados.reverse().forEach(cupom => {
+      dados.forEach(cupom => {
         const linha = document.createElement('tr');
-
-        const statusHTML = cupom.utilizado
-          ? `<span class="badge bg-success">Utilizado<br><small>${new Date(cupom.data_utilizado).toLocaleString('pt-BR')}</small></span>`
-          : `<span class="badge bg-warning text-dark">Disponível</span>`;
-
-        const botaoHTML = cupom.utilizado
-          ? ''
-          : `<button class="btn btn-sm btn-danger" onclick="darBaixa('${cupom.codigo}')">Dar baixa</button>`;
+        const utilizado = cupom.utilizado;
+        const dataUtilizado = cupom.data_utilizado
+          ? new Date(cupom.data_utilizado).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+          : '';
 
         linha.innerHTML = `
           <td>${cupom.codigo}</td>
@@ -132,15 +136,22 @@
           </td>
           <td>${cupom.brinde}</td>
           <td>${new Date(cupom.valido_ate).toLocaleDateString('pt-BR')}</td>
-          <td>${statusHTML}</td>
-          <td>${botaoHTML}</td>
+          <td>
+            ${utilizado
+              ? `<span class="badge badge-utilizado">Utilizado<br><small>${dataUtilizado}</small></span>`
+              : `<span class="badge badge-disponivel">Disponível</span>`}
+          </td>
+          <td>
+            ${!utilizado
+              ? `<button class="btn btn-sm btn-danger" onclick="darBaixa('${cupom.codigo}')">Dar baixa</button>`
+              : ''}
+          </td>
         `;
         tbody.appendChild(linha);
       });
     }
 
     async function darBaixa(codigo) {
-      const agora = new Date().toISOString();
       const resposta = await fetch(`${SUPABASE_URL}/rest/v1/cupons?codigo=eq.${codigo}`, {
         method: 'PATCH',
         headers: {
@@ -148,10 +159,14 @@
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ utilizado: true, data_utilizado: agora })
+        body: JSON.stringify({
+          utilizado: true,
+          data_utilizado: new Date().toISOString()
+        })
       });
+
       if (resposta.ok) {
-        console.log('Cupom atualizado');
+        console.log("Cupom atualizado");
         carregarCupons();
       } else {
         alert('Erro ao dar baixa no cupom.');
