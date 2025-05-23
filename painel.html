@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Painel Smash do Cabo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
       margin: 0;
@@ -40,7 +40,6 @@
       padding: 20px;
       background-color: #f4f6fa;
       min-height: 100vh;
-      transition: margin-left 0.3s ease;
     }
 
     .header {
@@ -48,55 +47,6 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
-    }
-
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .btn-sair {
-      background-color: #dc3545;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    .menu-toggle {
-      display: none;
-      background-color: #0f172a;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      font-size: 20px;
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      z-index: 1000;
-      border-radius: 5px;
-    }
-
-    @media (max-width: 768px) {
-      .sidebar {
-        transform: translateX(-100%);
-      }
-
-      .sidebar.active {
-        transform: translateX(0);
-      }
-
-      .content {
-        margin-left: 0;
-        padding-top: 70px;
-      }
-
-      .menu-toggle {
-        display: block;
-      }
     }
 
     .dashboard {
@@ -138,6 +88,40 @@
       color: #6c757d;
       font-size: 13px;
     }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+
+      .content {
+        margin-left: 0;
+        padding-top: 70px;
+      }
+
+      .menu-toggle {
+        display: block;
+      }
+    }
+
+    .menu-toggle {
+      display: none;
+      background-color: #0f172a;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      font-size: 20px;
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 1000;
+      border-radius: 5px;
+    }
+
   </style>
 </head>
 <body>
@@ -145,7 +129,7 @@
   <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
 
   <div class="sidebar" id="sidebar">
-    <a href="#" class="active" onclick="event.preventDefault()">Início</a>
+    <a href="painel.html" class="active">Início</a>
     <a href="respostas.html">Gestão das Respostas</a>
     <a href="usuarios.html">Usuários</a>
     <a href="cupons.html">Cupons</a>
@@ -154,9 +138,9 @@
   <div class="content">
     <div class="header">
       <h2>Painel Smash do Cabo</h2>
-      <div class="user-info">
-        <strong id="usuarioNome">Olá</strong>
-        <button class="btn-sair" onclick="sair()">Sair</button>
+      <div>
+        <strong>Olá, Jeniffer Adm</strong>
+        <button onclick="logout()" class="btn btn-sm btn-danger ms-3">Sair</button>
       </div>
     </div>
 
@@ -188,52 +172,55 @@
   </div>
 
   <script>
-    // Verificação de autenticação
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
-    if (!usuario || !usuario.email) {
-      window.location.href = "index.html";
-    }
-
-    // Nome no topo
-    document.getElementById("usuarioNome").textContent = `Olá, ${usuario.nome || "Usuário"}`;
-
-    // Função para logout
-    function sair() {
-      localStorage.removeItem("usuario");
-      window.location.href = "index.html";
-    }
-
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('active');
     }
 
+    function logout() {
+      localStorage.removeItem('usuario');
+      window.location.href = "index.html";
+    }
+
+    const usuario = localStorage.getItem("usuario");
+    if (!usuario) {
+      window.location.href = "index.html";
+    }
+
     const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const SUPABASE_ANON_KEY = 'SUA_CHAVE_AQUI';
+    const SUPABASE_ANON_KEY = 'SEU_SUPABASE_ANON_KEY_AQUI';
 
     async function carregarResumo() {
-      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=indicacao`, {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      });
+      try {
+        const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=indicacao`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
 
-      const dados = await resposta.json();
-      const total = dados.length;
-      const promotores = dados.filter(r => r.indicacao >= 9).length;
-      const neutros = dados.filter(r => r.indicacao === 7 || r.indicacao === 8).length;
-      const detratores = dados.filter(r => r.indicacao <= 6).length;
-      const nps = ((promotores - detratores) / total) * 100;
+        const dados = await resposta.json();
 
-      document.getElementById('npsTotal').textContent = nps.toFixed(0);
-      document.getElementById('promotoresTotal').textContent = promotores;
-      document.getElementById('neutrosTotal').textContent = neutros;
-      document.getElementById('detratoresTotal').textContent = detratores;
-      document.getElementById('respostasTotal').textContent = total;
+        if (!Array.isArray(dados)) throw new Error("Dados inválidos");
 
-      document.getElementById('percentPromotores').textContent = ((promotores / total) * 100).toFixed(1) + '%';
-      document.getElementById('percentNeutros').textContent = ((neutros / total) * 100).toFixed(1) + '%';
-      document.getElementById('percentDetratores').textContent = ((detratores / total) * 100).toFixed(1) + '%';
+        const total = dados.length;
+        const promotores = dados.filter(r => r.indicacao >= 9).length;
+        const neutros = dados.filter(r => r.indicacao === 7 || r.indicacao === 8).length;
+        const detratores = dados.filter(r => r.indicacao <= 6).length;
+        const nps = ((promotores - detratores) / total) * 100;
+
+        document.getElementById('npsTotal').textContent = nps.toFixed(0);
+        document.getElementById('promotoresTotal').textContent = promotores;
+        document.getElementById('neutrosTotal').textContent = neutros;
+        document.getElementById('detratoresTotal').textContent = detratores;
+        document.getElementById('respostasTotal').textContent = total;
+
+        document.getElementById('percentPromotores').textContent = ((promotores / total) * 100).toFixed(1) + '%';
+        document.getElementById('percentNeutros').textContent = ((neutros / total) * 100).toFixed(1) + '%';
+        document.getElementById('percentDetratores').textContent = ((detratores / total) * 100).toFixed(1) + '%';
+
+      } catch (e) {
+        console.error("Erro ao carregar dados:", e);
+      }
     }
 
     carregarResumo();
