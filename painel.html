@@ -50,6 +50,22 @@
       margin-bottom: 20px;
     }
 
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .btn-sair {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
     .menu-toggle {
       display: none;
       background-color: #0f172a;
@@ -138,7 +154,10 @@
   <div class="content">
     <div class="header">
       <h2>Painel Smash do Cabo</h2>
-      <div><strong id="usuarioNome">Olá, Jeniffer</strong></div>
+      <div class="user-info">
+        <strong id="usuarioNome">Olá</strong>
+        <button class="btn-sair" onclick="sair()">Sair</button>
+      </div>
     </div>
 
     <div class="dashboard">
@@ -169,23 +188,27 @@
   </div>
 
   <script>
-    // Verifica se está logado
+    // Verificação de autenticação
     const usuario = JSON.parse(localStorage.getItem("usuario"));
     if (!usuario || !usuario.email) {
       window.location.href = "index.html";
     }
 
-    // Insere o nome
-    document.getElementById("usuarioNome").innerHTML = `Olá, ${usuario.nome || 'Usuário'}`;
-  </script>
+    // Nome no topo
+    document.getElementById("usuarioNome").textContent = `Olá, ${usuario.nome || "Usuário"}`;
 
-  <script>
+    // Função para logout
+    function sair() {
+      localStorage.removeItem("usuario");
+      window.location.href = "index.html";
+    }
+
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('active');
     }
 
     const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // sua chave
+    const SUPABASE_ANON_KEY = 'SUA_CHAVE_AQUI';
 
     async function carregarResumo() {
       const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=indicacao`, {
