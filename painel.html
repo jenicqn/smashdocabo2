@@ -13,8 +13,8 @@
     }
     .sidebar {
       width: 240px;
-      background-color: #f97316;
-      color: black;
+      background-color: #0f172a;
+      color: white;
       height: 100vh;
       position: fixed;
       top: 0;
@@ -24,13 +24,13 @@
     .sidebar a {
       display: block;
       padding: 12px 20px;
-      color: black;
+      color: white;
       text-decoration: none;
     }
     .sidebar a:hover,
     .sidebar a.active {
-      background-color: #ffa94d;
-      border-left: 4px solid #000;
+      background-color: #1e293b;
+      border-left: 4px solid #f97316;
     }
     .content {
       margin-left: 240px;
@@ -41,25 +41,18 @@
       justify-content: space-between;
       align-items: center;
     }
-    .logout-btn {
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
+    .card-block {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
     }
     .dashboard {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 20px;
       margin-top: 20px;
-    }
-    .card-block {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 6px rgba(0,0,0,0.1);
     }
     .circulo {
       width: 100px;
@@ -92,10 +85,11 @@
       <h2>Painel Smash do Cabo</h2>
       <div>
         <strong>Olá, Jeniffer Adm</strong>
-        <button class="logout-btn" onclick="logout()">Sair</button>
+        <button onclick="logout()" class="btn btn-danger btn-sm ms-3">Sair</button>
       </div>
     </div>
 
+    <!-- Painel Resumo -->
     <div class="dashboard">
       <div class="card-block border-start border-success border-4">
         <h5>NPS</h5>
@@ -122,114 +116,36 @@
       </div>
     </div>
 
+    <!-- Indicadores Círculo -->
     <div class="row mt-4" id="graficosPizza"></div>
 
-    <h4 class="mt-5">Últimas Sugestões</h4>
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Nome</th>
-          <th>Sugestão</th>
-          <th>Morador</th>
-          <th>Qualidade</th>
-          <th>Tempo</th>
-          <th>Variedade</th>
-          <th>Custo-benefício</th>
-        </tr>
-      </thead>
-      <tbody id="sugestoesTabela"></tbody>
-    </table>
+    <!-- Tabela Resumo -->
+    <div class="mt-5">
+      <h4>Últimas Respostas</h4>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead class="table-light">
+            <tr>
+              <th>Data</th>
+              <th>Nome</th>
+              <th>Sugestão</th>
+              <th>Morador</th>
+              <th>Qualidade</th>
+              <th>Tempo</th>
+              <th>Variedade</th>
+              <th>Custo-benefício</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-resumo"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
-
   <script>
-    const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
-
     function logout() {
-      alert('Logout feito.');
+      localStorage.removeItem('usuarioLogado');
+      window.location.href = 'index.html';
     }
-
-    async function carregarResumo() {
-      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*`, {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      });
-
-      const dados = await resposta.json();
-      const total = dados.length;
-      const promotores = dados.filter(r => r.indicacao >= 9).length;
-      const neutros = dados.filter(r => r.indicacao === 7 || r.indicacao === 8).length;
-      const detratores = dados.filter(r => r.indicacao <= 6).length;
-      const nps = ((promotores - detratores) / total) * 100;
-
-      document.getElementById('npsTotal').textContent = nps.toFixed(0);
-      document.getElementById('promotoresTotal').textContent = promotores;
-      document.getElementById('neutrosTotal').textContent = neutros;
-      document.getElementById('detratoresTotal').textContent = detratores;
-      document.getElementById('respostasTotal').textContent = total;
-      document.getElementById('percentPromotores').textContent = ((promotores / total) * 100).toFixed(1) + '%';
-      document.getElementById('percentNeutros').textContent = ((neutros / total) * 100).toFixed(1) + '%';
-      document.getElementById('percentDetratores').textContent = ((detratores / total) * 100).toFixed(1) + '%';
-
-      desenharGraficos(dados);
-      preencherTabela(dados);
-    }
-
-    function desenharGraficos(dados) {
-      const criterios = ['atendimento', 'qualidade', 'tempo', 'variedade', 'custobeneficio'];
-      const container = document.getElementById('graficosPizza');
-      container.innerHTML = '';
-
-      criterios.forEach(criterio => {
-        const validos = dados.filter(r => typeof r[criterio] === 'number');
-        const total = validos.length;
-        const p = validos.filter(r => r[criterio] >= 9).length;
-        const n = validos.filter(r => r[criterio] === 7 || r[criterio] === 8).length;
-        const d = validos.filter(r => r[criterio] <= 6).length;
-
-        let cor = 'verde';
-        if (n > p && n > d) cor = 'amarelo';
-        else if (d > p && d > n) cor = 'vermelho';
-
-        const percentPromotores = total ? Math.round((p / total) * 100) : 0;
-
-        const bloco = document.createElement('div');
-        bloco.className = 'col-lg-2 col-md-3 col-sm-4 grafico-item';
-        bloco.innerHTML = `
-          <h6 class="mb-2">${criterio.charAt(0).toUpperCase() + criterio.slice(1)}</h6>
-          <div class="circulo ${cor}">
-            ${percentPromotores}%
-          </div>
-        `;
-        container.appendChild(bloco);
-      });
-    }
-
-    function preencherTabela(dados) {
-      const ultimos = dados.slice(-20).reverse();
-      const corpo = document.getElementById('sugestoesTabela');
-      corpo.innerHTML = '';
-
-      ultimos.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${new Date(item.created_at).toLocaleString()}</td>
-          <td>${item.nome || ''}</td>
-          <td>${item.sugestao || ''}</td>
-          <td>${item.morador || '-'}</td>
-          <td>${item.qualidade ?? '-'}</td>
-          <td>${item.tempo ?? '-'}</td>
-          <td>${item.variedade ?? '-'}</td>
-          <td>${item.custobeneficio ?? '-'}</td>
-        `;
-        corpo.appendChild(tr);
-      });
-    }
-
-    carregarResumo();
   </script>
 </body>
 </html>
