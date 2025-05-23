@@ -50,14 +50,6 @@
       margin-bottom: 20px;
     }
 
-    .card-summary {
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-
     .menu-toggle {
       display: none;
       background-color: #0f172a;
@@ -90,6 +82,46 @@
         display: block;
       }
     }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .card-block {
+      background: white;
+      border-left: 6px solid #0d6efd;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 20px 24px;
+    }
+
+    .card-block.green { border-left-color: #198754; }
+    .card-block.yellow { border-left-color: #ffc107; }
+    .card-block.red { border-left-color: #dc3545; }
+    .card-block.darkblue { border-left-color: #0d6efd; }
+
+    .card-block h4 {
+      margin-bottom: 8px;
+      font-size: 16px;
+      color: #333;
+    }
+
+    .card-block p {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 0;
+      color: #111;
+    }
+
+    .card-block small {
+      display: block;
+      margin-top: 5px;
+      color: #6c757d;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
@@ -108,36 +140,30 @@
       <h2>Painel Smash do Cabo</h2>
       <div><strong>Olá, Jeniffer Adm</strong></div>
     </div>
-    <div class="row">
-      <div class="col-md-3">
-        <div class="card-summary">
-          <h4>NPS</h4>
-          <p id="npsTotal">-</p>
-        </div>
+
+    <div class="dashboard">
+      <div class="card-block green">
+        <h4>NPS</h4>
+        <p id="npsTotal">-</p>
       </div>
-      <div class="col-md-3">
-        <div class="card-summary">
-          <h4>Promotores</h4>
-          <p id="promotoresTotal">-</p>
-        </div>
+      <div class="card-block green">
+        <h4>Promotores</h4>
+        <p id="promotoresTotal">-</p>
+        <small id="percentPromotores">-</small>
       </div>
-      <div class="col-md-3">
-        <div class="card-summary">
-          <h4>Neutros</h4>
-          <p id="neutrosTotal">-</p>
-        </div>
+      <div class="card-block yellow">
+        <h4>Neutros</h4>
+        <p id="neutrosTotal">-</p>
+        <small id="percentNeutros">-</small>
       </div>
-      <div class="col-md-3">
-        <div class="card-summary">
-          <h4>Detratores</h4>
-          <p id="detratoresTotal">-</p>
-        </div>
+      <div class="card-block red">
+        <h4>Detratores</h4>
+        <p id="detratoresTotal">-</p>
+        <small id="percentDetratores">-</small>
       </div>
-      <div class="col-md-3">
-        <div class="card-summary">
-          <h4>Respostas</h4>
-          <p id="respostasTotal">-</p>
-        </div>
+      <div class="card-block darkblue">
+        <h4>Respostas</h4>
+        <p id="respostasTotal">-</p>
       </div>
     </div>
   </div>
@@ -152,25 +178,28 @@
 
     async function carregarResumo() {
       const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=indicacao`, {
-  headers: {
-    'apikey': SUPABASE_ANON_KEY,
-    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-  }
-});
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
 
-const dados = await resposta.json();
-const total = dados.length;
-const promotores = dados.filter(r => r.indicacao >= 9).length;
-const neutros = dados.filter(r => r.indicacao === 7 || r.indicacao === 8).length;
-const detratores = dados.filter(r => r.indicacao <= 6).length;
-const nps = ((promotores - detratores) / total) * 100;
-
+      const dados = await resposta.json();
+      const total = dados.length;
+      const promotores = dados.filter(r => r.indicacao >= 9).length;
+      const neutros = dados.filter(r => r.indicacao === 7 || r.indicacao === 8).length;
+      const detratores = dados.filter(r => r.indicacao <= 6).length;
+      const nps = ((promotores - detratores) / total) * 100;
 
       document.getElementById('npsTotal').textContent = nps.toFixed(0);
       document.getElementById('promotoresTotal').textContent = promotores;
       document.getElementById('neutrosTotal').textContent = neutros;
       document.getElementById('detratoresTotal').textContent = detratores;
       document.getElementById('respostasTotal').textContent = total;
+
+      document.getElementById('percentPromotores').textContent = ((promotores / total) * 100).toFixed(1) + '%';
+      document.getElementById('percentNeutros').textContent = ((neutros / total) * 100).toFixed(1) + '%';
+      document.getElementById('percentDetratores').textContent = ((detratores / total) * 100).toFixed(1) + '%';
     }
 
     carregarResumo();
