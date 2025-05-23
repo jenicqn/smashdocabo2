@@ -1,83 +1,92 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Painel Smash do Cabo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      background-color: #f4f6fa;
-      margin: 0;
       display: flex;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6fa;
     }
+
     .sidebar {
       width: 240px;
-      background-color: #0e1628;
+      background-color: #0f172a;
       color: white;
       height: 100vh;
-      padding-top: 20px;
       position: fixed;
+      top: 0;
+      left: 0;
+      padding-top: 20px;
     }
+
     .sidebar a {
       display: block;
-      padding: 12px 20px;
+      padding: 15px 20px;
       color: white;
       text-decoration: none;
     }
-    .sidebar a:hover, .sidebar a.active {
-      background-color: #1f2a48;
-      border-left: 4px solid #f97316;
+
+    .sidebar a:hover,
+    .sidebar a.active {
+      background-color: #1e293b;
     }
+
     .content {
       margin-left: 240px;
+      padding: 20px;
       width: 100%;
     }
+
     .header {
-      height: 60px;
-      padding: 10px 30px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: white;
-      border-bottom: 1px solid #ccc;
     }
-    .dashboard-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
-      padding: 20px;
+
+    .cards {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
     }
+
     .card-block {
+      flex: 1;
       background: white;
-      border-left: 5px solid #0d6efd;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      padding: 20px;
+      border-radius: 10px;
+      border-left: 5px solid;
     }
-    .card-block.green { border-color: #198754; }
-    .card-block.yellow { border-color: #ffc107; }
-    .card-block.red { border-color: #dc3545; }
-    .card-block.blue { border-color: #0d6efd; }
+
+    .green { border-color: #198754; }
+    .yellow { border-color: #ffc107; }
+    .red { border-color: #dc3545; }
+    .blue { border-color: #0d6efd; }
 
     .charts {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 20px;
-      padding: 0 20px 20px;
     }
-    .chart-card {
+
+    .chart-container {
       background: white;
       padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      border-radius: 10px;
     }
-    .table-container {
-      padding: 0 20px 20px;
+
+    table {
+      margin-top: 30px;
+      background: white;
     }
+
     table th {
-      background: #eee;
+      background-color: #eaeaea;
     }
   </style>
 </head>
@@ -88,127 +97,152 @@
     <a href="usuarios.html">Usuários</a>
     <a href="cupons.html">Cupons</a>
   </div>
+
   <div class="content">
     <div class="header">
-      <h5>Painel Smash do Cabo</h5>
+      <h3>Painel Smash do Cabo</h3>
       <div><strong>Olá, Jeniffer Adm</strong></div>
     </div>
 
-    <div class="dashboard-cards">
+    <div class="cards">
       <div class="card-block green">
-        <h6>NPS</h6>
-        <div id="nps">-</div>
+        <h5>NPS</h5>
+        <h3 id="npsTotal">-</h3>
       </div>
       <div class="card-block green">
-        <h6>Promotores</h6>
-        <div id="promotores">-</div>
-        <small id="promotoresPct">-</small>
+        <h5>Promotores</h5>
+        <h3 id="promotoresTotal">-</h3>
+        <small id="percentPromotores">-</small>
       </div>
       <div class="card-block yellow">
-        <h6>Neutros</h6>
-        <div id="neutros">-</div>
-        <small id="neutrosPct">-</small>
+        <h5>Neutros</h5>
+        <h3 id="neutrosTotal">-</h3>
+        <small id="percentNeutros">-</small>
       </div>
       <div class="card-block red">
-        <h6>Detratores</h6>
-        <div id="detratores">-</div>
-        <small id="detratoresPct">-</small>
+        <h5>Detratores</h5>
+        <h3 id="detratoresTotal">-</h3>
+        <small id="percentDetratores">-</small>
       </div>
       <div class="card-block blue">
-        <h6>Respostas</h6>
-        <div id="total">-</div>
+        <h5>Respostas</h5>
+        <h3 id="respostasTotal">-</h3>
       </div>
     </div>
 
-    <div class="charts" id="chartsContainer"></div>
+    <div class="charts" id="graficosPizza"></div>
 
-    <div class="table-container">
-      <h5>Últimas Sugestões</h5>
-      <table class="table table-bordered table-striped">
-        <thead><tr><th>Data</th><th>Nome</th><th>Sugestão</th></tr></thead>
-        <tbody id="tabelaSugestoes"></tbody>
-      </table>
-    </div>
+    <h5 class="mt-5">Últimas Sugestões</h5>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Nome</th>
+          <th>Sugestão</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaSugestoes"></tbody>
+    </table>
   </div>
 
   <script>
     const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOi...Q_ELubY'; // coloque sua chave real aqui
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'; 
 
-    async function carregarDados() {
-      const headers = {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-      };
-      const inicioMes = new Date();
-      inicioMes.setDate(1);
-      const isoInicioMes = inicioMes.toISOString();
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?created_at=gte.${isoInicioMes}`, { headers });
+    const headers = {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+    };
+
+    const inicio = '2025-05-01';
+    const fim = '2025-05-31';
+
+    async function carregarResumo() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?created_at=gte.${inicio}&created_at=lte.${fim}&select=*`, { headers });
       const dados = await res.json();
-      if (!dados || !Array.isArray(dados)) return;
 
       const total = dados.length;
-      const promotores = dados.filter(d => d.indicacao >= 9).length;
-      const neutros = dados.filter(d => d.indicacao === 7 || d.indicacao === 8).length;
-      const detratores = dados.filter(d => d.indicacao <= 6).length;
+      const promotores = dados.filter(r => r.indicacao >= 9).length;
+      const neutros = dados.filter(r => r.indicacao === 7 || r.indicacao === 8).length;
+      const detratores = dados.filter(r => r.indicacao <= 6).length;
       const nps = ((promotores - detratores) / total) * 100;
 
-      document.getElementById('nps').textContent = nps.toFixed(0);
-      document.getElementById('promotores').textContent = promotores;
-      document.getElementById('neutros').textContent = neutros;
-      document.getElementById('detratores').textContent = detratores;
-      document.getElementById('total').textContent = total;
+      document.getElementById('npsTotal').textContent = isNaN(nps) ? '-' : nps.toFixed(0);
+      document.getElementById('promotoresTotal').textContent = promotores;
+      document.getElementById('neutrosTotal').textContent = neutros;
+      document.getElementById('detratoresTotal').textContent = detratores;
+      document.getElementById('respostasTotal').textContent = total;
 
-      document.getElementById('promotoresPct').textContent = `${(promotores / total * 100).toFixed(1)}%`;
-      document.getElementById('neutrosPct').textContent = `${(neutros / total * 100).toFixed(1)}%`;
-      document.getElementById('detratoresPct').textContent = `${(detratores / total * 100).toFixed(1)}%`;
+      document.getElementById('percentPromotores').textContent = ((promotores / total) * 100 || 0).toFixed(1) + '%';
+      document.getElementById('percentNeutros').textContent = ((neutros / total) * 100 || 0).toFixed(1) + '%';
+      document.getElementById('percentDetratores').textContent = ((detratores / total) * 100 || 0).toFixed(1) + '%';
 
+      desenharGraficos(dados);
+      carregarSugestoes(dados);
+    }
+
+    function desenharGraficos(dados) {
       const criterios = ['atendimento', 'qualidade', 'tempo', 'variedade', 'custobeneficio'];
-      const chartsDiv = document.getElementById('chartsContainer');
-      chartsDiv.innerHTML = '';
+      const cores = ['#198754', '#ffc107', '#dc3545'];
+      const labels = ['Promotores', 'Neutros', 'Detratores'];
+      const container = document.getElementById('graficosPizza');
+      container.innerHTML = '';
 
-      criterios.forEach(c => {
-        const data = { p: 0, n: 0, d: 0 };
-        dados.forEach(res => {
-          const val = res[c];
-          if (val >= 9) data.p++;
-          else if (val >= 7) data.n++;
-          else if (val >= 0) data.d++;
-        });
+      criterios.forEach(criterio => {
+        const p = dados.filter(r => r[criterio] >= 9).length;
+        const n = dados.filter(r => r[criterio] === 7 || r[criterio] === 8).length;
+        const d = dados.filter(r => r[criterio] <= 6).length;
 
-        const chartId = 'chart_' + c;
-        const div = document.createElement('div');
-        div.className = 'chart-card';
-        div.innerHTML = `<h6 class="text-center">${c.charAt(0).toUpperCase() + c.slice(1)}</h6><canvas id="${chartId}" width="300" height="300"></canvas>`;
-        chartsDiv.appendChild(div);
+        const canvas = document.createElement('canvas');
+        canvas.width = 300;
+        canvas.height = 300;
 
-        new Chart(document.getElementById(chartId), {
+        const chartWrap = document.createElement('div');
+        chartWrap.className = 'chart-container';
+        chartWrap.appendChild(canvas);
+        container.appendChild(chartWrap);
+
+        new Chart(canvas, {
           type: 'pie',
           data: {
-            labels: ['Promotores', 'Neutros', 'Detratores'],
+            labels: labels,
             datasets: [{
-              data: [data.p, data.n, data.d],
-              backgroundColor: ['#198754', '#ffc107', '#dc3545']
+              data: [p, n, d],
+              backgroundColor: cores
             }]
           },
           options: {
-            responsive: true,
-            maintainAspectRatio: false
+            plugins: {
+              title: {
+                display: true,
+                text: criterio.charAt(0).toUpperCase() + criterio.slice(1)
+              }
+            }
           }
         });
       });
+    }
 
-      const sugestoes = dados.filter(d => d.sugestao).slice(-6).reverse();
-      const tbody = document.getElementById('tabelaSugestoes');
-      tbody.innerHTML = '';
-      sugestoes.forEach(s => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${new Date(s.created_at).toLocaleString()}</td><td>${s.nome}</td><td>${s.sugestao}</td>`;
-        tbody.appendChild(tr);
+    function carregarSugestoes(dados) {
+      const tabela = document.getElementById('tabelaSugestoes');
+      tabela.innerHTML = '';
+      const ultimas = dados
+        .filter(d => d.sugestao)
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 5);
+
+      ultimas.forEach(s => {
+        const linha = document.createElement('tr');
+        linha.innerHTML = `
+          <td>${new Date(s.created_at).toLocaleString()}</td>
+          <td>${s.nome || '-'}</td>
+          <td>${s.sugestao}</td>
+        `;
+        tabela.appendChild(linha);
       });
     }
 
-    carregarDados();
+    carregarResumo();
   </script>
 </body>
 </html>
