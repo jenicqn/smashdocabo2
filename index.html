@@ -126,15 +126,21 @@
       erro.textContent = "Preencha todos os campos";
       return;
     }
+      const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
+      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
 
+      const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     try {
-      const res = await fetch(`${client.url}/rest/v1/usuarios_painel?email=eq.${email}`, {
-        headers: {
-          'apikey': client.supabaseKey,
-          'Authorization': 'Bearer ' + client.supabaseKey,
-          'Content-Type': 'application/json'
-        }
-      });
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/usuarios_painel?email=eq.${email}`, {
+  headers: {
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Content-Type': 'application/json'
+  }
+});
+
+
+
 
       const data = await res.json();
 
