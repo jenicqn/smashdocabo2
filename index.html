@@ -92,5 +92,15 @@
 
     carregarRespostas();
   </script>
+  <script>
+  // Verifica se tem usuário logado
+  const usuarioLogado = localStorage.getItem('usuarioLogado');
+
+  if (!usuarioLogado) {
+    // Se não estiver logado, redireciona pro login
+    window.location.href = 'login.html';
+  }
+</script>
+
 </body>
 </html>
