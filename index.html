@@ -24,6 +24,7 @@
       color: white;
       padding: 12px 24px;
       text-decoration: none;
+      cursor: pointer;
     }
     .sidebar a:hover, .sidebar a.active {
       background-color: #374151;
@@ -44,15 +45,18 @@
       background-color: #25D366;
       color: white;
     }
+    #formUsuarios {
+      display: none;
+    }
   </style>
 </head>
 <body>
 
   <div class="sidebar">
-    <a href="#" class="active">Início</a>
-    <a href="#">Gestão das Respostas</a>
-    <a href="#">Configurações</a>
-    <a href="#">Usuários</a>
+    <a class="active" onclick="mostrarSecao('respostas')">Início</a>
+    <a onclick="mostrarSecao('respostas')">Gestão das Respostas</a>
+    <a onclick="mostrarSecao('config')">Configurações</a>
+    <a onclick="mostrarSecao('usuarios')">Usuários</a>
   </div>
 
   <div class="main-content">
@@ -64,7 +68,7 @@
       </div>
     </div>
 
-    <div class="container mt-4">
+    <div class="container mt-4" id="secaoRespostas">
       <table class="table table-striped table-bordered align-middle" id="tabela-respostas">
         <thead>
           <tr>
@@ -78,10 +82,28 @@
             <th class="text-center">Ações</th>
           </tr>
         </thead>
-        <tbody>
-          <!-- Conteúdo gerado via JavaScript -->
-        </tbody>
+        <tbody></tbody>
       </table>
+    </div>
+
+    <div class="container mt-4" id="formUsuarios" style="display:none; max-width: 500px;">
+      <h4>Adicionar Usuário</h4>
+      <form onsubmit="return adicionarUsuario(event)">
+        <div class="mb-3">
+          <label for="nome" class="form-label">Nome</label>
+          <input type="text" id="nome" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" id="email" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label for="senha" class="form-label">Senha</label>
+          <input type="password" id="senha" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Cadastrar</button>
+        <div id="mensagemUsuario" class="mt-3"></div>
+      </form>
     </div>
   </div>
 
@@ -90,10 +112,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
 
     const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
-    if (!usuario) {
-      window.location.href = 'login.html';
-    }
-
+    if (!usuario) window.location.href = 'login.html';
     document.getElementById('usuarioInfo').textContent = `Olá, ${usuario.nome}`;
 
     function logout() {
@@ -111,8 +130,6 @@
       });
 
       const dados = await resposta.json();
-      console.log("Respostas:", dados);
-
       const tbody = document.querySelector('#tabela-respostas tbody');
       tbody.innerHTML = '';
 
@@ -132,6 +149,38 @@
         `;
         tbody.appendChild(linha);
       });
+    }
+
+    async function adicionarUsuario(event) {
+      event.preventDefault();
+      const nome = document.getElementById('nome').value;
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+
+      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/usuarios_painel`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ nome, email, senha, acesso: 'comum' })
+      });
+
+      const mensagem = document.getElementById('mensagemUsuario');
+      if (resposta.ok) {
+        mensagem.innerHTML = '<span class="text-success">Usuário cadastrado com sucesso!</span>';
+        document.getElementById('nome').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('senha').value = '';
+      } else {
+        mensagem.innerHTML = '<span class="text-danger">Erro ao cadastrar usuário.</span>';
+      }
+    }
+
+    function mostrarSecao(secao) {
+      document.getElementById('secaoRespostas').style.display = secao === 'respostas' ? 'block' : 'none';
+      document.getElementById('formUsuarios').style.display = secao === 'usuarios' ? 'block' : 'none';
     }
 
     carregarRespostas();
