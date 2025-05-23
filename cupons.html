@@ -110,6 +110,7 @@
         }
       });
       const dados = await resposta.json();
+      console.log('🧪 Cupons carregados:', dados);
       const tbody = document.querySelector('#tabela-cupons tbody');
       tbody.innerHTML = '';
 
