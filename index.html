@@ -56,51 +56,51 @@
     </table>
   </div>
 
-  <script>
-    const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
-
-    async function carregarRespostas() {
-      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*`, {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      const dados = await resposta.json();
-      const tbody = document.querySelector('#tabela-respostas tbody');
-      tbody.innerHTML = '';
-
-      dados.reverse().forEach(resposta => {
-        const linha = document.createElement('tr');
-        linha.innerHTML = `
-          <td>${new Date(resposta.created_at).toLocaleString()}</td>
-          <td>${resposta.nome}</td>
-          <td>${resposta.telefone}</td>
-          <td>${resposta.email}</td>
-          <td>${resposta.morador}</td>
-          <td>${resposta.indicacao}</td>
-          <td>${resposta.sugestao || ''}</td>
-          <td class="text-center">
-            <a href="https://wa.me/55${resposta.telefone.replace(/[^0-9]/g, '')}" target="_blank" class="btn btn-sm btn-whatsapp">WhatsApp</a>
-          </td>
-        `;
-        tbody.appendChild(linha);
-      });
-    }
-
-    carregarRespostas();
-  </script>
-  <script>
-  // Verifica se tem usuário logado
+<script>
+  // Proteção: redireciona se não estiver logado
   const usuarioLogado = localStorage.getItem('usuarioLogado');
-
   if (!usuarioLogado) {
-    // Se não estiver logado, redireciona pro login
     window.location.href = 'login.html';
   }
+
+  // Dados do Supabase
+  const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJI...'; // use sua chave completa
+
+  async function carregarRespostas() {
+    const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const dados = await resposta.json();
+    const tbody = document.querySelector('#tabela-respostas tbody');
+    tbody.innerHTML = '';
+
+    dados.reverse().forEach(resposta => {
+      const linha = document.createElement('tr');
+      linha.innerHTML = `
+        <td>${new Date(resposta.created_at).toLocaleString()}</td>
+        <td>${resposta.nome}</td>
+        <td>${resposta.telefone}</td>
+        <td>${resposta.email}</td>
+        <td>${resposta.morador}</td>
+        <td>${resposta.indicacao}</td>
+        <td>${resposta.sugestao || ''}</td>
+        <td class="text-center">
+          <a href="https://wa.me/55${resposta.telefone.replace(/[^0-9]/g, '')}" target="_blank" class="btn btn-sm btn-whatsapp">WhatsApp</a>
+        </td>
+      `;
+      tbody.appendChild(linha);
+    });
+  }
+
+  carregarRespostas();
 </script>
+
 
 </body>
 </html>
