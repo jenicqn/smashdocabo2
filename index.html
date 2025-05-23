@@ -5,13 +5,13 @@
   <title>Painel de Respostas - Clientes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       background-color: #f4f6fa;
       display: flex;
       margin: 0;
     }
-
     .sidebar {
       width: 240px;
       background-color: #0e1628;
@@ -19,25 +19,20 @@
       height: 100vh;
       padding-top: 20px;
     }
-
     .sidebar a {
       display: block;
       padding: 12px 20px;
       color: white;
       text-decoration: none;
     }
-
     .sidebar a:hover,
     .sidebar a.active {
       background-color: #1f2a48;
       border-left: 4px solid #f97316;
     }
-
-    .content {
-      flex: 1;
-      padding: 0;
+    .main-content {
+      flex-grow: 1;
     }
-
     .header {
       background-color: #ff6600;
       color: white;
@@ -47,22 +42,28 @@
       align-items: center;
       height: 60px;
     }
-
-    .header.minimized {
-      background-color: transparent;
-      color: black;
-      border-bottom: 1px solid #ccc;
+    .dashboard-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin: 20px;
     }
-
-    .dashboard-title {
-      margin: 0;
-      font-size: 20px;
+    .dashboard-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      flex: 1 1 calc(25% - 16px);
+      min-width: 250px;
     }
-
-    .user-info {
+    .dashboard-card h6 {
+      font-weight: bold;
+      color: #555;
+    }
+    .dashboard-card .value {
+      font-size: 24px;
       font-weight: bold;
     }
-
     .logout-btn {
       background: none;
       border: none;
@@ -70,63 +71,67 @@
       font-size: 18px;
       cursor: pointer;
     }
-
-    .header.minimized .logout-btn,
-    .header.minimized .user-info {
-      color: black;
-    }
-
-    .header.minimized .dashboard-title {
-      display: none;
-    }
   </style>
 </head>
 <body>
   <div class="sidebar">
-    <a href="index.html" class="nav-link">Início</a>
-    <a href="respostas.html" class="nav-link">Gestão das Respostas</a>
-    <a href="configuracoes.html" class="nav-link">Configurações</a>
-    <a href="usuarios.html" class="nav-link">Usuários</a>
-    <a href="cupons.html" class="nav-link">Cupons</a>
+    <a href="index.html" class="active">Início</a>
+    <a href="respostas.html">Gestão das Respostas</a>
+    <a href="configuracoes.html">Configurações</a>
+    <a href="usuarios.html">Usuários</a>
+    <a href="cupons.html">Cupons</a>
   </div>
 
-  <div class="content">
-    <div class="header" id="mainHeader">
-      <h1 class="dashboard-title" id="headerTitle">Painel de Respostas - Clientes</h1>
+  <div class="main-content">
+    <div class="header">
+      <h1 class="mb-0">Painel de Respostas - Clientes</h1>
       <div class="d-flex align-items-center gap-3">
-        <span id="usuarioInfo" class="user-info">Olá, Jeniffer Adm</span>
+        <span id="usuarioInfo" class="fw-bold">Olá</span>
         <button onclick="logout()" class="logout-btn" title="Sair">🚪</button>
       </div>
     </div>
 
-    <!-- Conteúdo da página vai aqui -->
+    <div class="dashboard-cards" id="painelResumo"></div>
   </div>
 
   <script>
+    const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
+
+    const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
+    if (!usuario) window.location.href = 'login.html';
+    document.getElementById('usuarioInfo').textContent = `Olá, ${usuario.nome}`;
+
     function logout() {
       localStorage.removeItem('usuarioLogado');
       window.location.href = 'login.html';
     }
 
-    // Exibe apenas o topo com nome/ícone fora da tela inicial
-    const isHome = window.location.pathname.endsWith('index.html');
-    const header = document.getElementById('mainHeader');
-    const title = document.getElementById('headerTitle');
-    if (!isHome) {
-      header.classList.add('minimized');
-      title.style.display = 'none';
+    async function carregarDashboard() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+      const dados = await res.json();
+      const total = dados.length;
+      const promotores = dados.filter(d => d.indicacao >= 9).length;
+      const detratores = dados.filter(d => d.indicacao <= 6).length;
+      const neutros = dados.filter(d => d.indicacao >= 7 && d.indicacao <= 8).length;
+      const nps = Math.round(((promotores - detratores) / total) * 100);
+
+      const painel = document.getElementById('painelResumo');
+      painel.innerHTML = `
+        <div class="dashboard-card"><h6>NPS</h6><div class="value">${nps}</div></div>
+        <div class="dashboard-card"><h6>Promotores</h6><div class="value">${promotores}</div></div>
+        <div class="dashboard-card"><h6>Neutros</h6><div class="value">${neutros}</div></div>
+        <div class="dashboard-card"><h6>Detratores</h6><div class="value">${detratores}</div></div>
+        <div class="dashboard-card"><h6>Respostas</h6><div class="value">${total}</div></div>
+      `;
     }
 
-    // Marca o link ativo na sidebar
-    const links = document.querySelectorAll('.sidebar a');
-    const path = window.location.pathname.split('/').pop();
-    links.forEach(link => {
-      if (link.getAttribute('href') === path) {
-        link.classList.add('active');
-      } else {
-        link.classList.remove('active');
-      }
-    });
+    carregarDashboard();
   </script>
 </body>
 </html>
