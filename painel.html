@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Painel Smash do Cabo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Smash do Cabo</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -13,8 +13,8 @@
     }
     .sidebar {
       width: 240px;
-      background-color: #0f172a;
-      color: white;
+      background-color: #ffe8cc; /* laranja claro */
+      color: #000;
       height: 100vh;
       position: fixed;
       top: 0;
@@ -24,13 +24,13 @@
     .sidebar a {
       display: block;
       padding: 12px 20px;
-      color: white;
+      color: #000;
       text-decoration: none;
     }
     .sidebar a:hover,
     .sidebar a.active {
-      background-color: #1e293b;
-      border-left: 4px solid #f97316;
+      background-color: #ffbe76; /* laranja mais forte */
+      font-weight: bold;
     }
     .content {
       margin-left: 240px;
@@ -41,36 +41,17 @@
       justify-content: space-between;
       align-items: center;
     }
-    .card-block {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 6px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+    .logout-btn {
+      background-color: #dc3545;
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
     }
-    .dashboard {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
+    table {
+      margin-top: 40px;
     }
-    .circulo {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 18px;
-      background: #fff;
-      margin: 0 auto;
-      border: 6px solid #ccc;
-    }
-    .circulo.verde { border-color: #198754; }
-    .circulo.amarelo { border-color: #ffc107; }
-    .circulo.vermelho { border-color: #dc3545; }
-    .grafico-item { text-align: center; margin-bottom: 30px; }
   </style>
 </head>
 <body>
@@ -80,102 +61,72 @@
     <a href="usuarios.html">Usuários</a>
     <a href="cupons.html">Cupons</a>
   </div>
+
   <div class="content">
-    <div class="header">
+    <div class="header mb-4">
       <h2>Painel Smash do Cabo</h2>
-      <div><strong>Olá, Jeniffer Adm</strong></div>
-    </div>
-    <div class="dashboard">
-      <div class="card-block border-start border-success border-4">
-        <h5>NPS</h5>
-        <div id="npsTotal">-</div>
-      </div>
-      <div class="card-block border-start border-success border-4">
-        <h5>Promotores</h5>
-        <div id="promotoresTotal">-</div>
-        <small id="percentPromotores">-</small>
-      </div>
-      <div class="card-block border-start border-warning border-4">
-        <h5>Neutros</h5>
-        <div id="neutrosTotal">-</div>
-        <small id="percentNeutros">-</small>
-      </div>
-      <div class="card-block border-start border-danger border-4">
-        <h5>Detratores</h5>
-        <div id="detratoresTotal">-</div>
-        <small id="percentDetratores">-</small>
-      </div>
-      <div class="card-block border-start border-primary border-4">
-        <h5>Respostas</h5>
-        <div id="respostasTotal">-</div>
+      <div>
+        <span><strong>Olá, Jeniffer Adm</strong></span>
+        <button onclick="logout()" class="logout-btn ms-3">Sair</button>
       </div>
     </div>
-    <div class="row mt-4" id="graficosPizza"></div>
+
+    <!-- Cards e gráficos omitidos para foco na tabela -->
+
+    <h4 class="mt-5">Últimas 20 Respostas</h4>
+    <table class="table table-bordered">
+      <thead class="table-light">
+        <tr>
+          <th>Data</th>
+          <th>Nome</th>
+          <th>Telefone</th>
+          <th>Morador</th>
+          <th>NPS</th>
+          <th>Qualidade</th>
+          <th>Custo Benefício</th>
+          <th>Sugestão</th>
+        </tr>
+      </thead>
+      <tbody id="resumoTabela"></tbody>
+    </table>
   </div>
 
-<script>
-  const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
+  <script>
+    const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUz...'; // substitua pela chave real
 
-  async function carregarResumo() {
-    const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*`, {
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-      }
-    });
+    async function carregarUltimasRespostas() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*&order=created_at.desc&limit=20`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+      const dados = await res.json();
+      const corpo = document.getElementById('resumoTabela');
+      corpo.innerHTML = '';
+      dados.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${new Date(item.created_at).toLocaleString()}</td>
+          <td>${item.nome || '-'}</td>
+          <td>${item.telefone || '-'}</td>
+          <td>${item.morador || '-'}</td>
+          <td>${item.indicacao ?? '-'}</td>
+          <td>${item.qualidade ?? '-'}</td>
+          <td>${item.custobeneficio ?? '-'}</td>
+          <td>${item.sugestao || '-'}</td>
+        `;
+        corpo.appendChild(tr);
+      });
+    }
 
-    const dados = await resposta.json();
-    const total = dados.length;
-    const promotores = dados.filter(r => r.indicacao >= 9).length;
-    const neutros = dados.filter(r => r.indicacao === 7 || r.indicacao === 8).length;
-    const detratores = dados.filter(r => r.indicacao <= 6).length;
-    const nps = ((promotores - detratores) / total) * 100;
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
 
-    document.getElementById('npsTotal').textContent = nps.toFixed(0);
-    document.getElementById('promotoresTotal').textContent = promotores;
-    document.getElementById('neutrosTotal').textContent = neutros;
-    document.getElementById('detratoresTotal').textContent = detratores;
-    document.getElementById('respostasTotal').textContent = total;
-
-    document.getElementById('percentPromotores').textContent = ((promotores / total) * 100).toFixed(1) + '%';
-    document.getElementById('percentNeutros').textContent = ((neutros / total) * 100).toFixed(1) + '%';
-    document.getElementById('percentDetratores').textContent = ((detratores / total) * 100).toFixed(1) + '%';
-
-    desenharGraficos(dados);
-  }
-
-  function desenharGraficos(dados) {
-    const criterios = ['atendimento', 'qualidade', 'tempo', 'variedade', 'custobeneficio'];
-    const container = document.getElementById('graficosPizza');
-    container.innerHTML = '';
-
-    criterios.forEach(criterio => {
-      const validos = dados.filter(r => typeof r[criterio] === 'number');
-      const total = validos.length;
-      const p = validos.filter(r => r[criterio] >= 9).length;
-      const n = validos.filter(r => r[criterio] === 7 || r[criterio] === 8).length;
-      const d = validos.filter(r => r[criterio] <= 6).length;
-
-      let cor = 'verde';
-      if (n > p && n > d) cor = 'amarelo';
-      else if (d > p && d > n) cor = 'vermelho';
-
-      const percentPromotores = total ? Math.round((p / total) * 100) : 0;
-
-      const bloco = document.createElement('div');
-      bloco.className = 'col-lg-2 col-md-3 col-sm-4 grafico-item';
-      bloco.innerHTML = `
-        <h6 class="mb-2">${criterio.charAt(0).toUpperCase() + criterio.slice(1)}</h6>
-        <div class="circulo ${cor}">
-          ${percentPromotores}%
-        </div>
-      `;
-      container.appendChild(bloco);
-    });
-  }
-
-  carregarResumo();
-</script>
+    carregarUltimasRespostas();
+  </script>
 </body>
 </html>
