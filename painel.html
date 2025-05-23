@@ -13,8 +13,8 @@
     }
     .sidebar {
       width: 240px;
-      background-color: #ffe8cc; /* laranja claro */
-      color: #000;
+      background-color: #f97316;
+      color: black;
       height: 100vh;
       position: fixed;
       top: 0;
@@ -24,13 +24,13 @@
     .sidebar a {
       display: block;
       padding: 12px 20px;
-      color: #000;
+      color: black;
       text-decoration: none;
     }
     .sidebar a:hover,
     .sidebar a.active {
-      background-color: #ffbe76; /* laranja mais forte */
-      font-weight: bold;
+      background-color: #ffa94d;
+      border-left: 4px solid black;
     }
     .content {
       margin-left: 240px;
@@ -41,16 +41,16 @@
       justify-content: space-between;
       align-items: center;
     }
-    .logout-btn {
+    .btn-sair {
       background-color: #dc3545;
-      border: none;
       color: white;
+      border: none;
       padding: 6px 12px;
       border-radius: 4px;
       cursor: pointer;
     }
-    table {
-      margin-top: 40px;
+    .resumo-table th {
+      background-color: #eaeaea;
     }
   </style>
 </head>
@@ -63,67 +63,69 @@
   </div>
 
   <div class="content">
-    <div class="header mb-4">
+    <div class="header">
       <h2>Painel Smash do Cabo</h2>
       <div>
-        <span><strong>Olá, Jeniffer Adm</strong></span>
-        <button onclick="logout()" class="logout-btn ms-3">Sair</button>
+        <strong>Olá, Jeniffer Adm</strong>
+        <button class="btn-sair" onclick="logout()">Sair</button>
       </div>
     </div>
 
-    <!-- Cards e gráficos omitidos para foco na tabela -->
-
-    <h4 class="mt-5">Últimas 20 Respostas</h4>
-    <table class="table table-bordered">
-      <thead class="table-light">
-        <tr>
-          <th>Data</th>
-          <th>Nome</th>
-          <th>Telefone</th>
-          <th>Morador</th>
-          <th>NPS</th>
-          <th>Qualidade</th>
-          <th>Custo Benefício</th>
-          <th>Sugestão</th>
-        </tr>
-      </thead>
-      <tbody id="resumoTabela"></tbody>
-    </table>
+    <div class="row mt-4">
+      <div class="col-md-12">
+        <h5>Últimas 20 Respostas</h5>
+        <div class="table-responsive">
+          <table class="table table-bordered resumo-table" id="tabela-resumo">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Nome</th>
+                <th>Qualidade</th>
+                <th>Custo-benefício</th>
+                <th>É Morador?</th>
+                <th>Sugestão</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
     const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUz...'; // substitua pela chave real
+    const SUPABASE_ANON_KEY = 'eyJhbGciOi...'; // sua chave real
+
+    function logout() {
+      localStorage.removeItem("usuarioLogado");
+      window.location.href = "index.html";
+    }
 
     async function carregarUltimasRespostas() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*&order=created_at.desc&limit=20`, {
+      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*&order=created_at.desc&limit=20`, {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
         }
       });
-      const dados = await res.json();
-      const corpo = document.getElementById('resumoTabela');
-      corpo.innerHTML = '';
-      dados.forEach(item => {
+
+      const dados = await resposta.json();
+      const tbody = document.querySelector('#tabela-resumo tbody');
+      tbody.innerHTML = '';
+
+      dados.forEach(resposta => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${new Date(item.created_at).toLocaleString()}</td>
-          <td>${item.nome || '-'}</td>
-          <td>${item.telefone || '-'}</td>
-          <td>${item.morador || '-'}</td>
-          <td>${item.indicacao ?? '-'}</td>
-          <td>${item.qualidade ?? '-'}</td>
-          <td>${item.custobeneficio ?? '-'}</td>
-          <td>${item.sugestao || '-'}</td>
+          <td>${new Date(resposta.created_at).toLocaleString()}</td>
+          <td>${resposta.nome || '-'}</td>
+          <td>${resposta.qualidade ?? '-'}</td>
+          <td>${resposta.custobeneficio ?? '-'}</td>
+          <td>${resposta.morador ?? '-'}</td>
+          <td>${resposta.falta ?? '-'}</td>
         `;
-        corpo.appendChild(tr);
+        tbody.appendChild(tr);
       });
-    }
-
-    function logout() {
-      localStorage.clear();
-      window.location.href = 'index.html';
     }
 
     carregarUltimasRespostas();
