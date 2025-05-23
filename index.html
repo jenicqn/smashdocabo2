@@ -45,7 +45,7 @@
       background-color: #25D366;
       color: white;
     }
-    #formUsuarios {
+    #formUsuarios, #secaoCupons {
       display: none;
     }
   </style>
@@ -57,6 +57,7 @@
     <a onclick="mostrarSecao('respostas')">Gestão das Respostas</a>
     <a onclick="mostrarSecao('config')">Configurações</a>
     <a onclick="mostrarSecao('usuarios')">Usuários</a>
+    <a onclick="mostrarSecao('cupons')">Cupons</a>
   </div>
 
   <div class="main-content">
@@ -86,7 +87,7 @@
       </table>
     </div>
 
-    <div class="container mt-4" id="formUsuarios" style="display:none; max-width: 500px;">
+    <div class="container mt-4" id="formUsuarios" style="max-width: 500px;">
       <h4>Adicionar Usuário</h4>
       <form onsubmit="return adicionarUsuario(event)">
         <div class="mb-3">
@@ -104,6 +105,23 @@
         <button type="submit" class="btn btn-primary">Cadastrar</button>
         <div id="mensagemUsuario" class="mt-3"></div>
       </form>
+    </div>
+
+    <div class="container mt-4" id="secaoCupons">
+      <h4>Controle de Cupons</h4>
+      <table class="table table-bordered" id="tabela-cupons">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Cliente</th>
+            <th>Brinde</th>
+            <th>Validade</th>
+            <th>Status</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 
@@ -151,6 +169,47 @@
       });
     }
 
+    async function carregarCupons() {
+      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/cupons?select=*`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+
+      const dados = await resposta.json();
+      const tbody = document.querySelector('#tabela-cupons tbody');
+      tbody.innerHTML = '';
+
+      dados.reverse().forEach(cupom => {
+        const linha = document.createElement('tr');
+        linha.innerHTML = `
+          <td>${cupom.codigo}</td>
+          <td>${cupom.cliente_nome}</td>
+          <td>${cupom.brinde}</td>
+          <td>${cupom.valido_ate}</td>
+          <td>${cupom.utilizado ? 'Utilizado' : 'Não utilizado'}</td>
+          <td>
+            ${!cupom.utilizado ? `<button class="btn btn-sm btn-success" onclick="marcarComoUsado('${cupom.codigo}')">Dar baixa</button>` : '✔️'}
+          </td>
+        `;
+        tbody.appendChild(linha);
+      });
+    }
+
+    async function marcarComoUsado(codigo) {
+      await fetch(`${SUPABASE_URL}/rest/v1/cupons?codigo=eq.${codigo}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ utilizado: true })
+      });
+      carregarCupons();
+    }
+
     async function adicionarUsuario(event) {
       event.preventDefault();
       const nome = document.getElementById('nome').value;
@@ -181,10 +240,11 @@
     function mostrarSecao(secao) {
       document.getElementById('secaoRespostas').style.display = secao === 'respostas' ? 'block' : 'none';
       document.getElementById('formUsuarios').style.display = secao === 'usuarios' ? 'block' : 'none';
+      document.getElementById('secaoCupons').style.display = secao === 'cupons' ? 'block' : 'none';
+      if (secao === 'cupons') carregarCupons();
     }
 
     carregarRespostas();
   </script>
-
 </body>
 </html>
