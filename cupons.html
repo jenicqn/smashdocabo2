@@ -124,9 +124,15 @@
           </td>
           <td>${cupom.brinde}</td>
           <td>${new Date(cupom.valido_ate).toLocaleDateString('pt-BR')}</td>
-          <td>${cupom.utilizado ? 'Utilizado' : 'Disponível'}</td>
           <td>
-            ${!cupom.utilizado ? `<button class="btn btn-sm btn-danger" onclick="darBaixa('${cupom.codigo}')">Dar baixa</button>` : '-'}
+            ${cupom.utilizado
+              ? `Utilizado<br><small>${new Date(cupom.data_utilizado).toLocaleString('pt-BR')}</small>`
+              : 'Disponível'}
+          </td>
+          <td>
+            ${!cupom.utilizado
+              ? `<button class="btn btn-sm btn-danger" onclick="darBaixa('${cupom.codigo}')">Dar baixa</button>`
+              : '-'}
           </td>
         `;
         tbody.appendChild(linha);
@@ -134,6 +140,8 @@
     }
 
     async function darBaixa(codigo) {
+      const agora = new Date().toISOString();
+
       const resposta = await fetch(`${SUPABASE_URL}/rest/v1/cupons?codigo=eq.${codigo}`, {
         method: 'PATCH',
         headers: {
@@ -141,10 +149,14 @@
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ utilizado: true })
+        body: JSON.stringify({
+          utilizado: true,
+          data_utilizado: agora
+        })
       });
+
       if (resposta.ok) {
-        alert('Cupom marcado como utilizado.');
+        alert(`Cupom marcado como utilizado em ${new Date(agora).toLocaleString('pt-BR')}`);
         carregarCupons();
       } else {
         alert('Erro ao dar baixa no cupom.');
