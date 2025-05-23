@@ -25,10 +25,6 @@
       margin-bottom: 10px;
     }
 
-    .left h1 {
-      font-size: 28px;
-    }
-
     .right {
       flex: 1;
       background: #f9f9f9;
@@ -96,7 +92,7 @@
 <body>
   <div class="container">
     <div class="left">
-      <img src="https://jenicqn.github.io/smashdocabo/logo.png" alt="Logo Smash" /
+      <img src="https://jenicqn.github.io/smashdocabo/logo.png" alt="Logo Smash" />
     </div>
     <div class="right">
       <div class="form">
@@ -110,9 +106,13 @@
     </div>
   </div>
 
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const API_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
+    const supabase = supabase.createClient(
+      'https://kwktdbinfadztnkghuul.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
+    );
 
     async function logar() {
       const email = document.getElementById('email').value.trim();
@@ -125,10 +125,10 @@
       }
 
       try {
-        const res = await fetch(`${API_URL}/rest/v1/usuarios_painel?email=eq.${email}`, {
+        const res = await fetch(`https://kwktdbinfadztnkghuul.supabase.co/rest/v1/usuarios_painel?email=eq.${email}`, {
           headers: {
-            'apikey': API_KEY,
-            'Authorization': 'Bearer ' + API_KEY,
+            'apikey': supabase.supabaseKey,
+            'Authorization': 'Bearer ' + supabase.supabaseKey,
             'Content-Type': 'application/json'
           }
         });
@@ -151,27 +151,14 @@
       const email = prompt("Digite seu email:");
       if (!email) return;
 
-      const novaSenha = prompt("Digite a nova senha:");
-      if (!novaSenha) return;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://painel.smashdocabo.com/reset.html'
+      });
 
-      try {
-        const res = await fetch(`${API_URL}/rest/v1/usuarios_painel?email=eq.${email}`, {
-          method: 'PATCH',
-          headers: {
-            'apikey': API_KEY,
-            'Authorization': 'Bearer ' + API_KEY,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ senha: novaSenha })
-        });
-
-        if (res.ok) {
-          alert("Senha redefinida com sucesso.");
-        } else {
-          alert("Erro ao redefinir. Verifique se o email está correto.");
-        }
-      } catch (e) {
-        alert("Erro ao conectar com o servidor.");
+      if (error) {
+        alert("Erro ao enviar e-mail. Verifique se o email está correto.");
+      } else {
+        alert("Enviamos um link de redefinição para seu e-mail.");
       }
     }
   </script>
