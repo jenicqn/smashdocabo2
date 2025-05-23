@@ -25,7 +25,7 @@
 
   <script>
     const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // substitua pelo seu valor real
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
 
     const loginForm = document.getElementById('loginForm');
     const loginErro = document.getElementById('loginErro');
@@ -36,7 +36,7 @@
       const email = document.getElementById('loginEmail').value;
       const senha = document.getElementById('loginPassword').value;
 
-      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/usuarios_painel?email=eq.${email}&senha=eq.${senha}`, {
+      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/usuarios_painel?email=eq.${encodeURIComponent(email)}&senha=eq.${encodeURIComponent(senha)}`, {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
@@ -44,6 +44,7 @@
       });
 
       const dados = await resposta.json();
+      console.log("Resposta do Supabase:", dados);
 
       if (dados.length === 1) {
         localStorage.setItem('usuarioLogado', JSON.stringify(dados[0]));
