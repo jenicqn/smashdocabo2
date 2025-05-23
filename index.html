@@ -111,67 +111,67 @@
 
   <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const client = window.supabase.createClient(
-      'https://kwktdbinfadztnkghuul.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
-    );
+<script>
+  const client = window.supabase.createClient(
+    'https://kwktdbinfadztnkghuul.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
+  );
 
-    async function logar() {
-      const email = document.getElementById('email').value.trim();
-      const senha = document.getElementById('senha').value.trim();
-      const erro = document.getElementById('erro');
+  async function logar() {
+    const email = document.getElementById('email').value.trim();
+    const senha = document.getElementById('senha').value.trim();
+    const erro = document.getElementById('erro');
 
-      if (!email || !senha) {
-        erro.textContent = "Preencha todos os campos";
+    if (!email || !senha) {
+      erro.textContent = "Preencha todos os campos";
+      return;
+    }
+
+    try {
+      const res = await fetch(`${client.url}/rest/v1/usuarios_painel?email=eq.${email}`, {
+        headers: {
+          'apikey': client.supabaseKey,
+          'Authorization': 'Bearer ' + client.supabaseKey,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await res.json();
+
+      if (!data.length || data[0].senha !== senha) {
+        erro.textContent = "Usuário ou senha inválidos";
         return;
       }
 
-      try {
-        const res = await fetch(`${client.url}/rest/v1/usuarios_painel?email=eq.${email}`, {
-          headers: {
-            'apikey': client.supabaseKey,
-            'Authorization': 'Bearer ' + client.supabaseKey,
-            'Content-Type': 'application/json'
-          }
-        });
+      localStorage.setItem("usuario", JSON.stringify(data[0]));
+      window.location.href = "painel.html";
+    } catch (e) {
+      erro.textContent = "Erro ao conectar com o servidor";
+    }
+  }
 
-        const data = await res.json();
+  async function redefinirSenha() {
+    const email = prompt("Digite seu email:");
+    if (!email) return;
 
-        if (!data.length || data[0].senha !== senha) {
-          erro.textContent = "Usuário ou senha inválidos";
-          return;
-        }
+    try {
+      const { data, error } = await client.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://painel.smashdocabo.com/reset.html'
+      });
 
-        localStorage.setItem("usuario", JSON.stringify(data[0]));
-        window.location.href = "painel.html";
-      } catch (e) {
-        erro.textContent = "Erro ao conectar com o servidor";
+      if (error) {
+        console.error("Erro Supabase:", error);
+        alert("Erro ao enviar e-mail. Verifique se o email está correto.");
+      } else {
+        alert("Enviamos um link de redefinição para seu e-mail.");
       }
+    } catch (err) {
+      console.error("Erro inesperado:", err);
+      alert("Erro inesperado ao tentar enviar e-mail.");
     }
+  }
+</script>
 
-        async function redefinirSenha() {
-      const email = prompt("Digite seu email:");
-      if (!email) return;
-
-      try {
-        const { data, error } = await client.auth.resetPasswordForEmail(email, {
-          redirectTo: 'https://painel.smashdocabo.com/reset.html'
-        });
-
-        if (error) {
-          console.error("Erro Supabase:", error);
-          alert("Erro ao enviar e-mail. Verifique se o email está correto.");
-        } else {
-          alert("Enviamos um link de redefinição para seu e-mail.");
-        }
-      } catch (err) {
-        console.error("Erro inesperado:", err);
-        alert("Erro inesperado ao tentar enviar e-mail.");
-      }
-    }
-
-    }
-  </script>
+  
 </body>
 </html>
