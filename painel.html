@@ -2,69 +2,82 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel Smash do Cabo</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f4f6fa;
+      margin: 0;
+      display: flex;
     }
     .sidebar {
       width: 240px;
-      background-color: #0f172a;
+      background-color: #0e1628;
       color: white;
       height: 100vh;
-      position: fixed;
-      top: 0;
-      left: 0;
       padding-top: 20px;
-      z-index: 999;
+      position: fixed;
     }
     .sidebar a {
       display: block;
+      padding: 12px 20px;
       color: white;
       text-decoration: none;
-      padding: 12px 20px;
     }
     .sidebar a:hover, .sidebar a.active {
-      background-color: #1e293b;
+      background-color: #1f2a48;
       border-left: 4px solid #f97316;
     }
     .content {
       margin-left: 240px;
-      padding: 20px;
+      width: 100%;
     }
-    .dashboard {
+    .header {
+      height: 60px;
+      padding: 10px 30px;
       display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin-bottom: 40px;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      border-bottom: 1px solid #ccc;
+    }
+    .dashboard-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      padding: 20px;
     }
     .card-block {
       background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      flex: 1 0 200px;
+      border-left: 5px solid #0d6efd;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
-    canvas {
-      width: 300px !important;
-      height: 300px !important;
+    .card-block.green { border-color: #198754; }
+    .card-block.yellow { border-color: #ffc107; }
+    .card-block.red { border-color: #dc3545; }
+    .card-block.blue { border-color: #0d6efd; }
+
+    .charts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      padding: 0 20px 20px;
     }
-    table {
-      width: 100%;
+    .chart-card {
       background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
-    table th, table td {
-      padding: 8px;
-      border: 1px solid #ccc;
-      font-size: 14px;
+    .table-container {
+      padding: 0 20px 20px;
     }
     table th {
-      background-color: #eaeaea;
+      background: #eee;
     }
   </style>
 </head>
@@ -75,111 +88,127 @@
     <a href="usuarios.html">Usuários</a>
     <a href="cupons.html">Cupons</a>
   </div>
-
   <div class="content">
-    <h2>Painel Smash do Cabo</h2>
+    <div class="header">
+      <h5>Painel Smash do Cabo</h5>
+      <div><strong>Olá, Jeniffer Adm</strong></div>
+    </div>
 
-    <div class="dashboard" id="resumo"></div>
+    <div class="dashboard-cards">
+      <div class="card-block green">
+        <h6>NPS</h6>
+        <div id="nps">-</div>
+      </div>
+      <div class="card-block green">
+        <h6>Promotores</h6>
+        <div id="promotores">-</div>
+        <small id="promotoresPct">-</small>
+      </div>
+      <div class="card-block yellow">
+        <h6>Neutros</h6>
+        <div id="neutros">-</div>
+        <small id="neutrosPct">-</small>
+      </div>
+      <div class="card-block red">
+        <h6>Detratores</h6>
+        <div id="detratores">-</div>
+        <small id="detratoresPct">-</small>
+      </div>
+      <div class="card-block blue">
+        <h6>Respostas</h6>
+        <div id="total">-</div>
+      </div>
+    </div>
 
-    <div class="row" id="graficos"></div>
+    <div class="charts" id="chartsContainer"></div>
 
-    <h5 class="mt-5">Últimas Sugestões</h5>
-    <table>
-      <thead>
-        <tr><th>Data</th><th>Nome</th><th>Sugestão</th></tr>
-      </thead>
-      <tbody id="tabelaSugestoes"></tbody>
-    </table>
+    <div class="table-container">
+      <h5>Últimas Sugestões</h5>
+      <table class="table table-bordered table-striped">
+        <thead><tr><th>Data</th><th>Nome</th><th>Sugestão</th></tr></thead>
+        <tbody id="tabelaSugestoes"></tbody>
+      </table>
+    </div>
   </div>
 
   <script>
-    const URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
+    const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOi...Q_ELubY'; // coloque sua chave real aqui
 
-    async function fetchDados() {
-      const res = await fetch(`${URL}/rest/v1/feedback_detalhado?select=*`, {
-        headers: {
-          'apikey': KEY,
-          'Authorization': `Bearer ${KEY}`
-        }
-      });
-      return await res.json();
-    }
+    async function carregarDados() {
+      const headers = {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      };
+      const inicioMes = new Date();
+      inicioMes.setDate(1);
+      const isoInicioMes = inicioMes.toISOString();
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?created_at=gte.${isoInicioMes}`, { headers });
+      const dados = await res.json();
+      if (!dados || !Array.isArray(dados)) return;
 
-    function criarGraficoPizza(canvasId, dados, titulo) {
       const total = dados.length;
-      const promotores = dados.filter(v => v >= 9).length;
-      const neutros = dados.filter(v => v === 7 || v === 8).length;
-      const detratores = dados.filter(v => v <= 6).length;
+      const promotores = dados.filter(d => d.indicacao >= 9).length;
+      const neutros = dados.filter(d => d.indicacao === 7 || d.indicacao === 8).length;
+      const detratores = dados.filter(d => d.indicacao <= 6).length;
+      const nps = ((promotores - detratores) / total) * 100;
 
-      new Chart(document.getElementById(canvasId), {
-        type: 'pie',
-        data: {
-          labels: ['Promotores', 'Neutros', 'Detratores'],
-          datasets: [{
-            data: [promotores, neutros, detratores],
-            backgroundColor: ['#198754', '#ffc107', '#dc3545']
-          }]
-        },
-        options: {
-          responsive: false,
-          plugins: { title: { display: true, text: titulo } }
-        }
-      });
-    }
+      document.getElementById('nps').textContent = nps.toFixed(0);
+      document.getElementById('promotores').textContent = promotores;
+      document.getElementById('neutros').textContent = neutros;
+      document.getElementById('detratores').textContent = detratores;
+      document.getElementById('total').textContent = total;
 
-    function gerarGraficoCriterios(dados) {
-      const criterios = ['atendimento','qualidade','tempo','variedade','custobeneficio'];
-      const container = document.getElementById('graficos');
-      container.innerHTML = '';
-      criterios.forEach(criterio => {
-        const valores = dados.map(x => x[criterio]).filter(v => typeof v === 'number');
-        const id = 'grafico_' + criterio;
+      document.getElementById('promotoresPct').textContent = `${(promotores / total * 100).toFixed(1)}%`;
+      document.getElementById('neutrosPct').textContent = `${(neutros / total * 100).toFixed(1)}%`;
+      document.getElementById('detratoresPct').textContent = `${(detratores / total * 100).toFixed(1)}%`;
+
+      const criterios = ['atendimento', 'qualidade', 'tempo', 'variedade', 'custobeneficio'];
+      const chartsDiv = document.getElementById('chartsContainer');
+      chartsDiv.innerHTML = '';
+
+      criterios.forEach(c => {
+        const data = { p: 0, n: 0, d: 0 };
+        dados.forEach(res => {
+          const val = res[c];
+          if (val >= 9) data.p++;
+          else if (val >= 7) data.n++;
+          else if (val >= 0) data.d++;
+        });
+
+        const chartId = 'chart_' + c;
         const div = document.createElement('div');
-        div.className = 'col-md-4 p-2';
-        div.innerHTML = `<canvas id="${id}"></canvas>`;
-        container.appendChild(div);
-        criarGraficoPizza(id, valores, criterio.charAt(0).toUpperCase() + criterio.slice(1));
+        div.className = 'chart-card';
+        div.innerHTML = `<h6 class="text-center">${c.charAt(0).toUpperCase() + c.slice(1)}</h6><canvas id="${chartId}" width="300" height="300"></canvas>`;
+        chartsDiv.appendChild(div);
+
+        new Chart(document.getElementById(chartId), {
+          type: 'pie',
+          data: {
+            labels: ['Promotores', 'Neutros', 'Detratores'],
+            datasets: [{
+              data: [data.p, data.n, data.d],
+              backgroundColor: ['#198754', '#ffc107', '#dc3545']
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false
+          }
+        });
+      });
+
+      const sugestoes = dados.filter(d => d.sugestao).slice(-6).reverse();
+      const tbody = document.getElementById('tabelaSugestoes');
+      tbody.innerHTML = '';
+      sugestoes.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${new Date(s.created_at).toLocaleString()}</td><td>${s.nome}</td><td>${s.sugestao}</td>`;
+        tbody.appendChild(tr);
       });
     }
 
-    function atualizarResumo(dados) {
-      const total = dados.length;
-      const promotores = dados.filter(r => r.indicacao >= 9).length;
-      const neutros = dados.filter(r => r.indicacao === 7 || r.indicacao === 8).length;
-      const detratores = dados.filter(r => r.indicacao <= 6).length;
-      const nps = ((promotores - detratores) / total * 100).toFixed(0);
-
-      const div = document.getElementById('resumo');
-      div.innerHTML = `
-        <div class='card-block'><h5>NPS</h5><p>${nps}</p></div>
-        <div class='card-block'><h5>Promotores</h5><p>${promotores}</p><small>${(promotores/total*100).toFixed(1)}%</small></div>
-        <div class='card-block'><h5>Neutros</h5><p>${neutros}</p><small>${(neutros/total*100).toFixed(1)}%</small></div>
-        <div class='card-block'><h5>Detratores</h5><p>${detratores}</p><small>${(detratores/total*100).toFixed(1)}%</small></div>
-        <div class='card-block'><h5>Respostas</h5><p>${total}</p></div>
-      `;
-    }
-
-    function carregarSugestoes(dados) {
-      const sugestoes = dados
-        .filter(x => x.sugestao)
-        .sort((a,b) => new Date(b.created_at) - new Date(a.created_at))
-        .slice(0, 5);
-
-      const tbody = document.getElementById('tabelaSugestoes');
-      tbody.innerHTML = sugestoes.map(s => `
-        <tr>
-          <td>${new Date(s.created_at).toLocaleString()}</td>
-          <td>${s.nome || '-'}</td>
-          <td>${s.sugestao}</td>
-        </tr>`).join('');
-    }
-
-    fetchDados().then(dados => {
-      atualizarResumo(dados);
-      gerarGraficoCriterios(dados);
-      carregarSugestoes(dados);
-    });
+    carregarDados();
   </script>
 </body>
 </html>
