@@ -55,14 +55,6 @@
     .table th {
       background-color: #eaeaea;
     }
-    .badge-disponivel {
-      background-color: gold;
-      color: #000;
-    }
-    .badge-utilizado {
-      background-color: #28a745;
-      color: #fff;
-    }
   </style>
 </head>
 <body>
@@ -122,11 +114,15 @@
       tbody.innerHTML = '';
 
       dados.reverse().forEach(cupom => {
-        const linha = document.createElement('tr');
-        const status = cupom.utilizado ? 
-          `<span class="badge badge-utilizado">Utilizado<br><small>${new Date(cupom.utilizado_em).toLocaleString('pt-BR')}</small></span>` : 
-          `<span class="badge badge-disponivel">Disponível</span>`;
+        const statusBadge = cupom.utilizado
+          ? `<span class="badge bg-success">Utilizado em ${new Date(cupom.data_utilizado).toLocaleDateString('pt-BR')} ${new Date(cupom.data_utilizado).toLocaleTimeString('pt-BR').slice(0,5)}</span>`
+          : `<span class="badge bg-warning text-dark">Disponível</span>`;
 
+        const acao = cupom.utilizado
+          ? '-'
+          : `<button class="btn btn-sm btn-danger" onclick="darBaixa('${cupom.codigo}')">Dar baixa</button>`;
+
+        const linha = document.createElement('tr');
         linha.innerHTML = `
           <td>${cupom.codigo}</td>
           <td>
@@ -135,17 +131,16 @@
           </td>
           <td>${cupom.brinde}</td>
           <td>${new Date(cupom.valido_ate).toLocaleDateString('pt-BR')}</td>
-          <td>${status}</td>
-          <td>
-            ${!cupom.utilizado ? `<button class="btn btn-sm btn-danger" onclick="darBaixa('${cupom.codigo}')">Dar baixa</button>` : '-'}
-          </td>
+          <td>${statusBadge}</td>
+          <td>${acao}</td>
         `;
         tbody.appendChild(linha);
       });
     }
 
     async function darBaixa(codigo) {
-      const dataHora = new Date().toISOString();
+      const agora = new Date().toISOString();
+
       const resposta = await fetch(`${SUPABASE_URL}/rest/v1/cupons?codigo=eq.${codigo}`, {
         method: 'PATCH',
         headers: {
@@ -153,8 +148,12 @@
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ utilizado: true, utilizado_em: dataHora })
+        body: JSON.stringify({
+          utilizado: true,
+          data_utilizado: agora
+        })
       });
+
       if (resposta.ok) {
         carregarCupons();
       } else {
