@@ -59,7 +59,7 @@
 </head>
 <body>
   <div class="sidebar">
-    <a href="index.html">Início</a>
+    <a href="painel.html">Início</a>
     <a href="respostas.html" class="active">Gestão das Respostas</a>
     <a href="usuarios.html">Usuários</a>
     <a href="cupons.html">Cupons</a>
@@ -101,47 +101,54 @@
     const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
 
-    const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
-    if (!usuario) window.location.href = 'login.html';
-    document.getElementById('usuarioInfo').textContent = `Olá, ${usuario.nome}`;
+    const usuario = JSON.parse(localStorage.getItem('usuario'));
+    if (!usuario) window.location.href = 'index.html';
+    document.getElementById('usuarioInfo').textContent = `Olá, ${usuario.nome || 'Usuário'}`;
 
     function logout() {
-      localStorage.removeItem('usuarioLogado');
-      window.location.href = 'login.html';
+      localStorage.removeItem('usuario');
+      window.location.href = 'index.html';
     }
 
     async function carregarRespostas() {
-      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*`, {
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        }
-      });
-      const dados = await resposta.json();
-      const tbody = document.querySelector('#tabela-respostas tbody');
-      tbody.innerHTML = '';
-      dados.reverse().forEach(resposta => {
-        const linha = document.createElement('tr');
-        linha.innerHTML = `
-          <td>${new Date(resposta.created_at).toLocaleString()}</td>
-          <td>${resposta.nome}</td>
-          <td>${resposta.telefone}</td>
-          <td>${resposta.email}</td>
-          <td>${resposta.morador}</td>
-          <td>${resposta.atendimento ?? '-'}</td>
-          <td>${resposta.qualidade ?? '-'}</td>
-          <td>${resposta.tempo ?? '-'}</td>
-          <td>${resposta.variedade ?? '-'}</td>
-          <td>${resposta.custobeneficio ?? '-'}</td>
-          <td>${resposta.indicacao ?? '-'}</td>
-          <td>${resposta.falta ?? '-'}</td>
-          <td>${resposta.origem ?? '-'}</td>
-          <td class="text-center">
-            <a href="https://wa.me/55${resposta.telefone.replace(/[^0-9]/g, '')}" target="_blank" class="btn btn-sm btn-success">WhatsApp</a>
-          </td>
-        `;
-        tbody.appendChild(linha);
-      });
+      try {
+        const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
+
+        const dados = await resposta.json();
+        const tbody = document.querySelector('#tabela-respostas tbody');
+        tbody.innerHTML = '';
+
+        dados.reverse().forEach(res => {
+          const linha = document.createElement('tr');
+          linha.innerHTML = `
+            <td>${new Date(res.created_at).toLocaleString('pt-BR')}</td>
+            <td>${res.nome || '-'}</td>
+            <td>${res.telefone || '-'}</td>
+            <td>${res.email || '-'}</td>
+            <td>${res.morador || '-'}</td>
+            <td>${res.atendimento ?? '-'}</td>
+            <td>${res.qualidade ?? '-'}</td>
+            <td>${res.tempo ?? '-'}</td>
+            <td>${res.variedade ?? '-'}</td>
+            <td>${res.custobeneficio ?? '-'}</td>
+            <td>${res.indicacao ?? '-'}</td>
+            <td>${res.falta || '-'}</td>
+            <td>${res.origem || '-'}</td>
+            <td class="text-center">
+              ${res.telefone ? `<a href="https://wa.me/55${res.telefone.replace(/\D/g, '')}" target="_blank" class="btn btn-sm btn-success">WhatsApp</a>` : '-'}
+            </td>
+          `;
+          tbody.appendChild(linha);
+        });
+
+      } catch (error) {
+        console.error('Erro ao carregar respostas:', error);
+      }
     }
 
     carregarRespostas();
