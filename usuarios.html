@@ -2,133 +2,84 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Usuários</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Usuário</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
       background-color: #f4f6fa;
-      margin: 0;
-      display: flex;
     }
-    .sidebar {
-      width: 240px;
-      background-color: #0e1628;
-      color: white;
-      height: 100vh;
-      padding-top: 20px;
-    }
-    .sidebar a {
-      display: block;
-      padding: 12px 20px;
-      color: white;
-      text-decoration: none;
-    }
-    .sidebar a:hover,
-    .sidebar a.active {
-      background-color: #1f2a48;
-      border-left: 4px solid #f97316;
-    }
-    .content {
-      flex: 1;
-    }
-    .header {
-      height: 60px;
-      padding: 10px 30px;
-      display: flex;
-      justify-content: end;
-      align-items: center;
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
       background: white;
-      border-bottom: 1px solid #ccc;
-    }
-    .user-info {
-      font-weight: bold;
-    }
-    .logout-btn {
-      background: none;
-      border: none;
-      color: black;
-      font-size: 18px;
-      margin-left: 10px;
-      cursor: pointer;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 <body>
-  <div class="sidebar">
-    <a href="index.html">Início</a>
-    <a href="respostas.html">Gestão das Respostas</a>
-    <a href="configuracoes.html">Configurações</a>
-    <a href="usuarios.html" class="active">Usuários</a>
-    <a href="cupons.html">Cupons</a>
-  </div>
-
-  <div class="content">
-    <div class="header">
-      <span class="user-info" id="usuarioInfo">Olá, Usuário</span>
-      <button onclick="logout()" class="logout-btn" title="Sair">🚪</button>
-    </div>
-
-    <div class="container mt-4" style="max-width: 500px;">
-      <h4>Adicionar Novo Usuário</h4>
-      <form onsubmit="return adicionarUsuario(event)">
-        <div class="mb-3">
-          <label for="nome" class="form-label">Nome</label>
-          <input type="text" id="nome" class="form-control" required>
-        </div>
-        <div class="mb-3">
-          <label for="email" class="form-label">Email</label>
-          <input type="email" id="email" class="form-control" required>
-        </div>
-        <div class="mb-3">
-          <label for="senha" class="form-label">Senha</label>
-          <input type="password" id="senha" class="form-control" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Cadastrar</button>
-        <div id="mensagemUsuario" class="mt-3"></div>
-      </form>
-    </div>
+  <div class="container">
+    <h3 class="mb-4">Editar Usuário</h3>
+    <form id="editarForm">
+      <div class="mb-3">
+        <label for="nome" class="form-label">Nome</label>
+        <input type="text" class="form-control" id="nome" required>
+      </div>
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" required>
+      </div>
+      <div class="mb-3">
+        <label for="acesso" class="form-label">Nível de Acesso</label>
+        <select id="acesso" class="form-control">
+          <option value="admin">Administrador</option>
+          <option value="usuario">Usuário</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Salvar alterações</button>
+    </form>
   </div>
 
   <script>
+    const usuarioId = new URLSearchParams(window.location.search).get("id");
+
     const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // coloque sua chave
 
-    const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
-    if (!usuario) window.location.href = 'login.html';
-    document.getElementById('usuarioInfo').textContent = `Olá, ${usuario.nome}`;
-
-    function logout() {
-      localStorage.removeItem('usuarioLogado');
-      window.location.href = 'login.html';
-    }
-
-    async function adicionarUsuario(event) {
-      event.preventDefault();
-      const nome = document.getElementById('nome').value;
-      const email = document.getElementById('email').value;
-      const senha = document.getElementById('senha').value;
-
-      const resposta = await fetch(`${SUPABASE_URL}/rest/v1/usuarios_painel`, {
-        method: 'POST',
+    document.addEventListener("DOMContentLoaded", async () => {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/usuarios_painel?id=eq.${usuarioId}`, {
         headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json'
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+      const [usuario] = await res.json();
+      document.getElementById("nome").value = usuario.nome;
+      document.getElementById("email").value = usuario.email;
+      document.getElementById("acesso").value = usuario.acesso;
+    });
+
+    document.getElementById("editarForm").onsubmit = async function (e) {
+      e.preventDefault();
+      const nome = document.getElementById("nome").value;
+      const email = document.getElementById("email").value;
+      const acesso = document.getElementById("acesso").value;
+
+      await fetch(`${SUPABASE_URL}/rest/v1/usuarios_painel?id=eq.${usuarioId}`, {
+        method: "PATCH",
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ nome, email, senha, acesso: 'comum' })
+        body: JSON.stringify({ nome, email, acesso })
       });
 
-      const mensagem = document.getElementById('mensagemUsuario');
-      if (resposta.ok) {
-        mensagem.innerHTML = '<span class="text-success">Usuário cadastrado com sucesso!</span>';
-        document.getElementById('nome').value = '';
-        document.getElementById('email').value = '';
-        document.getElementById('senha').value = '';
-      } else {
-        mensagem.innerHTML = '<span class="text-danger">Erro ao cadastrar usuário.</span>';
-      }
-    }
+      alert("Usuário atualizado com sucesso!");
+      window.location.href = "usuarios.html";
+    };
   </script>
 </body>
 </html>
