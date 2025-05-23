@@ -14,22 +14,26 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .sidebar {
-      width: 240px;
-      background-color: #0f172a;
+      width: 220px;
+      background-color: #0e1628;
       color: white;
-      height: 100vh;
-      padding-top: 20px;
+      min-height: 100vh;
     }
-    .sidebar a {
-      display: block;
-      padding: 12px 20px;
-      color: white;
-      text-decoration: none;
+    .sidebar h2 {
+      font-size: 18px;
+      padding: 20px;
+      margin: 0;
     }
-    .sidebar a:hover,
-    .sidebar a.active {
-      background-color: #1e293b;
-      border-left: 4px solid #f97316;
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+    .sidebar ul li {
+      padding: 15px 20px;
+      cursor: pointer;
+    }
+    .sidebar ul li:hover, .sidebar ul li.active {
+      background-color: #1e2a47;
     }
     .content {
       flex: 1;
@@ -50,17 +54,38 @@
     .btn-password {
       background-color: #198754;
     }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    .logout-btn {
+      background-color: #dc3545;
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <div class="sidebar">
-    <a href="painel.html">Início</a>
-    <a href="respostas.html">Gestão das Respostas</a>
-    <a href="usuarios.html" class="active">Usuários</a>
-    <a href="cupons.html">Cupons</a>
+    <h2>Painel</h2>
+    <ul>
+      <li onclick="location.href='painel.html'">Início</li>
+      <li onclick="location.href='respostas.html'">Gestão das Respostas</li>
+      <li class="active" onclick="location.href='usuarios.html'">Usuários</li>
+      <li onclick="location.href='cupons.html'">Cupons</li>
+    </ul>
   </div>
   <div class="content">
-    <h3>Lista de Usuários</h3>
+    <div class="header">
+      <h3>Lista de Usuários</h3>
+      <button class="logout-btn" onclick="logout()">Sair</button>
+    </div>
+
     <table class="table table-bordered align-middle">
       <thead class="table-light">
         <tr>
@@ -80,16 +105,23 @@
           <td>Ativo</td>
           <td>Dono de empresa</td>
           <td>
-            <a href="editar-usuario.html" class="btn-icon btn-edit me-2" title="Editar usuário">
+            <button class="btn-icon btn-edit me-2" title="Editar usuário" onclick="window.location.href='editar-usuario.html'">
               <i class="bi bi-pencil"></i>
-            </a>
-            <a href="trocar-senha.html" class="btn-icon btn-password" title="Trocar senha">
+            </button>
+            <button class="btn-icon btn-password" title="Trocar senha" onclick="window.location.href='trocar-senha.html'">
               <i class="bi bi-key"></i>
-            </a>
+            </button>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
+
+  <script>
+    function logout() {
+      localStorage.removeItem('usuarioLogado');
+      window.location.href = 'index.html';
+    }
+  </script>
 </body>
 </html>
