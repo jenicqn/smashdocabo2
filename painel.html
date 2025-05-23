@@ -189,9 +189,11 @@
       container.innerHTML = '';
 
       criterios.forEach(criterio => {
-        const p = dados.filter(r => r[criterio] >= 9).length;
-        const n = dados.filter(r => r[criterio] === 7 || r[criterio] === 8).length;
-        const d = dados.filter(r => r[criterio] <= 6).length;
+      const validos = dados.filter(r => typeof r[criterio] === 'number');
+      const p = validos.filter(r => r[criterio] >= 9).length;
+      const n = validos.filter(r => r[criterio] === 7 || r[criterio] === 8).length;
+      const d = validos.filter(r => r[criterio] <= 6).length;
+
 
         const canvas = document.createElement('canvas');
         canvas.width = 300;
