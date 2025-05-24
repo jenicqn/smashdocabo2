@@ -46,50 +46,60 @@
           <th>Ações</th>
         </tr>
       </thead>
-      <tbody id="tabelaPesquisas">
-        <tr>
-          <td>Cardápio/Instagram</td>
-          <td>Smash do Cabo</td>
-          <td><span class="badge bg-secondary">Inativo</span></td>
-          <td><span class="badge bg-secondary">Inativo</span></td>
-          <td><span class="badge bg-secondary">Inativo</span></td>
-          <td>
-            <button class="btn btn-sm btn-secondary btn-acao" title="Ver link"><i class="bi bi-clipboard"></i></button>
-            <button class="btn btn-sm btn-warning btn-acao" title="Abrir perguntas"><i class="bi bi-grid-3x3-gap"></i></button>
-            <button class="btn btn-sm btn-info btn-acao" title="Editar"><i class="bi bi-pencil-square"></i></button>
-            <button class="btn btn-sm btn-success btn-acao" title="Ativar"><i class="bi bi-power"></i></button>
-            <button class="btn btn-sm btn-danger btn-acao" title="Excluir"><i class="bi bi-trash"></i></button>
-          </td>
-        </tr>
-        <tr>
-          <td>Delivery</td>
-          <td>Smash do Cabo</td>
-          <td><span class="badge bg-secondary">Inativo</span></td>
-          <td><span class="badge bg-secondary">Inativo</span></td>
-          <td><span class="badge bg-secondary">Inativo</span></td>
-          <td>
-            <button class="btn btn-sm btn-secondary btn-acao"><i class="bi bi-clipboard"></i></button>
-            <button class="btn btn-sm btn-warning btn-acao"><i class="bi bi-grid-3x3-gap"></i></button>
-            <button class="btn btn-sm btn-info btn-acao"><i class="bi bi-pencil-square"></i></button>
-            <button class="btn btn-sm btn-success btn-acao"><i class="bi bi-power"></i></button>
-            <button class="btn btn-sm btn-danger btn-acao"><i class="bi bi-trash"></i></button>
-          </td>
-        </tr>
-      </tbody>
+      <tbody id="tabelaPesquisas"></tbody>
     </table>
   </div>
 
   <script>
-    // Carrega o layout lateral
+    // Menu lateral
     fetch("layout.html")
       .then(res => res.text())
       .then(html => {
         document.getElementById("menuLateral").innerHTML = html;
       });
 
+    const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
+
     function adicionarPesquisa() {
       window.location.href = 'adicionar_pesquisa.html';
     }
+
+    async function carregarPesquisas() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/pesquisas?select=*`, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+
+      const dados = await res.json();
+      const tbody = document.getElementById('tabelaPesquisas');
+      tbody.innerHTML = '';
+
+      dados.reverse().forEach(pesquisa => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${pesquisa.nome}</td>
+          <td>${pesquisa.unidade}</td>
+          <td><span class="badge ${pesquisa.status === 'Ativo' ? 'bg-success' : 'bg-secondary'}">${pesquisa.status}</span></td>
+          <td><span class="badge ${pesquisa.pagina_ativa === 'Ativo' ? 'bg-success' : 'bg-secondary'}">${pesquisa.pagina_ativa}</span></td>
+          <td><span class="badge ${pesquisa.linktree === 'Ativo' ? 'bg-success' : 'bg-secondary'}">${pesquisa.linktree}</span></td>
+          <td>
+            <button class="btn btn-sm btn-secondary btn-acao" title="Ver link" onclick="window.open('${pesquisa.link_pagina}', '_blank')">
+              <i class="bi bi-clipboard"></i>
+            </button>
+            <button class="btn btn-sm btn-warning btn-acao" title="Abrir perguntas"><i class="bi bi-grid-3x3-gap"></i></button>
+            <button class="btn btn-sm btn-info btn-acao" title="Editar"><i class="bi bi-pencil-square"></i></button>
+            <button class="btn btn-sm btn-success btn-acao" title="Ativar"><i class="bi bi-power"></i></button>
+            <button class="btn btn-sm btn-danger btn-acao" title="Excluir"><i class="bi bi-trash"></i></button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    carregarPesquisas();
   </script>
 </body>
 </html>
