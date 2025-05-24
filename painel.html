@@ -12,29 +12,6 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f4f6fa;
     }
-    .sidebar {
-      width: 220px;
-      background-color: #0f172a;
-      color: white;
-      min-height: 100vh;
-    }
-    .sidebar h4 {
-      padding: 20px;
-      margin: 0;
-      font-size: 20px;
-      font-weight: bold;
-      border-bottom: 1px solid #1e2a47;
-    }
-    .sidebar a {
-      display: block;
-      padding: 15px 20px;
-      color: white;
-      text-decoration: none;
-    }
-    .sidebar a:hover,
-    .sidebar a.active {
-      background-color: #1e2a47;
-    }
     .content {
       flex: 1;
       padding: 30px;
@@ -52,22 +29,15 @@
       border-radius: 12px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     }
-    .card-panel.nps    { border-color: #16a34a; }
+    .card-panel.nps        { border-color: #16a34a; }
     .card-panel.promotores { border-color: #22c55e; }
-    .card-panel.neutros { border-color: #facc15; }
+    .card-panel.neutros    { border-color: #facc15; }
     .card-panel.detratores { border-color: #dc2626; }
-    .card-panel.respostas { border-color: #3b82f6; }
+    .card-panel.respostas  { border-color: #3b82f6; }
   </style>
 </head>
 <body>
-  <div class="sidebar">
-    <a href="painel.html">Início</a>
-    <a href="respostas.html">Respostas</a>
-    <a href="clientes.html" class="active">Clientes</a>
-    <a href="usuarios.html">Usuários</a>
-    <a href="cupons.html" class="active">Cupons</a>
-    <a href="pesquisas.html">Pesquisas</a>
-  </div>
+  <div id="menuLateral"></div>
 
   <div class="content">
     <div class="topbar">
@@ -130,6 +100,13 @@
   </div>
 
   <script>
+    // Carrega o layout lateral
+    fetch("layout.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("menuLateral").innerHTML = html;
+      });
+
     const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
 
@@ -140,6 +117,7 @@
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`
         }
       });
+
       const dados = await res.json();
       const total = dados.length;
       const promotores = dados.filter(d => d.indicacao >= 9).length;
