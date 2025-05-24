@@ -1,3 +1,4 @@
+<!-- HTML com Supabase atualizado -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -124,7 +125,7 @@
     for (let d = new Date(inicio); d <= fim; d.setDate(d.getDate() + 1)) {
       mesDia.push(d.toISOString().slice(5, 10));
     }
-    const { data } = await supabase.from('clientes').select('nome,email,telefone,data_nascimento');
+    const { data } = await supabase.from('feedback_detalhado').select('nome,email,telefone,data_nascimento');
     const filtrados = data.filter(c => mesDia.includes(c.data_nascimento?.slice(5, 10)));
     document.getElementById('bloco-aniversariantes').innerText = filtrados.length ? `${filtrados.length} aniversariante(s).` : 'Nenhum aniversariante.';
     const tabela = document.getElementById('tabela-aniversariantes');
@@ -133,11 +134,11 @@
   }
 
   async function carregarCupons(inicio, fim) {
-    const { data } = await supabase.from('cupons').select('codigo,nome_cliente,data_validade').gte('data_validade', inicio).lte('data_validade', fim);
+    const { data } = await supabase.from('cupons').select('codigo,cliente_nome,valido_ate').gte('valido_ate', inicio).lte('valido_ate', fim);
     document.getElementById('bloco-cupons').innerText = data.length ? `${data.length} cupom(ns) vencendo.` : 'Nenhum cupom vencendo.';
     const tabela = document.getElementById('tabela-cupons');
     tabela.innerHTML = data.length ? `<thead><tr><th>Cliente</th><th>Código</th><th>Validade</th></tr></thead><tbody>` +
-      data.map(c => `<tr><td>${c.nome_cliente}</td><td>${c.codigo}</td><td>${c.data_validade}</td></tr>`).join('') + '</tbody>' : '';
+      data.map(c => `<tr><td>${c.cliente_nome}</td><td>${c.codigo}</td><td>${c.valido_ate}</td></tr>`).join('') + '</tbody>' : '';
   }
 
   function exportarPDF() {
