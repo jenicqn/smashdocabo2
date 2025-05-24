@@ -51,7 +51,7 @@
   </div>
 
   <script>
-    // Menu lateral
+    // Carregar menu lateral
     fetch("layout.html")
       .then(res => res.text())
       .then(html => {
@@ -78,6 +78,12 @@
       tbody.innerHTML = '';
 
       dados.reverse().forEach(pesquisa => {
+        const linkButton = pesquisa.link_pagina
+          ? `<a href="${pesquisa.link_pagina}" target="_blank" class="btn btn-sm btn-secondary btn-acao" title="Ver link">
+               <i class="bi bi-clipboard"></i>
+             </a>`
+          : '';
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${pesquisa.nome}</td>
@@ -86,9 +92,7 @@
           <td><span class="badge ${pesquisa.pagina_ativa === 'Ativo' ? 'bg-success' : 'bg-secondary'}">${pesquisa.pagina_ativa}</span></td>
           <td><span class="badge ${pesquisa.linktree === 'Ativo' ? 'bg-success' : 'bg-secondary'}">${pesquisa.linktree}</span></td>
           <td>
-            <button class="btn btn-sm btn-secondary btn-acao" title="Ver link" onclick="window.open('${pesquisa.link_pagina}', '_blank')">
-              <i class="bi bi-clipboard"></i>
-            </button>
+            ${linkButton}
             <button class="btn btn-sm btn-warning btn-acao" title="Abrir perguntas"><i class="bi bi-grid-3x3-gap"></i></button>
             <button class="btn btn-sm btn-info btn-acao" title="Editar"><i class="bi bi-pencil-square"></i></button>
             <button class="btn btn-sm btn-success btn-acao" title="Ativar"><i class="bi bi-power"></i></button>
