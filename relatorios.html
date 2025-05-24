@@ -8,129 +8,132 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="layout.css">
   <style>
-    body { background-color: #f4f6fa; font-family: Arial, sans-serif; padding: 20px; }
-    .titulo-relatorio { font-size: 24px; font-weight: bold; color: #126e82; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-    .caixa-relatorio, .bloco-info {
-      background-color: white; border: 1px solid #ccc; border-radius: 8px;
-      padding: 20px; margin-top: 20px; min-height: 170px;
-    }
-    .bloco-info h5, .caixa-relatorio h5 { font-weight: bold; color: #000; margin-bottom: 10px; }
-    .icone { font-size: 40px; color: #aaa; margin-bottom: 10px; }
-    .btn { background-color: #f97316; color: white; border: none; }
     table { width: 100%; font-size: 14px; }
     th, td { padding: 6px; border-bottom: 1px solid #ddd; }
+    .btn { background-color: #f97316; color: white; border: none; }
   </style>
 </head>
 <body>
+  <div class="layout">
+    <aside class="sidebar"> <!-- menu lateral -->
+      <h2>Painel</h2>
+      <ul>
+        <li><a href="index.html">Início</a></li>
+        <li><a href="respostas.html">Gestão das Respostas</a></li>
+        <li><a href="clientes.html">Clientes</a></li>
+        <li><a href="cupons.html">Cupons</a></li>
+        <li><a href="pesquisas.html">Pesquisas</a></li>
+        <li><a href="relatorios.html" class="active">Relatórios</a></li>
+        <li><a href="usuarios.html">Usuários</a></li>
+        <li><a href="login.html">Sair</a></li>
+      </ul>
+    </aside>
+    <main class="content p-4">
 
-  <div class="titulo-relatorio">
-    <span id="data-hoje">Relatório</span>
-    <div class="d-flex gap-2">
-      <input type="date" id="filtro-data" class="form-control form-control-sm">
-      <select id="tipo-periodo" class="form-select form-select-sm">
-        <option value="dia">Diário</option>
-        <option value="semana">Semanal</option>
-        <option value="mes">Mensal</option>
-      </select>
-      <button class="btn btn-sm" onclick="exportarPDF()">PDF</button>
-      <button class="btn btn-sm" onclick="exportarExcel()">Excel</button>
-    </div>
+      <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <h1 id="data-hoje" class="mb-3">Relatório</h1>
+        <div class="d-flex gap-2">
+          <input type="date" id="filtro-data" class="form-control form-control-sm">
+          <select id="tipo-periodo" class="form-select form-select-sm">
+            <option value="dia">Diário</option>
+            <option value="semana">Semanal</option>
+            <option value="mes">Mensal</option>
+          </select>
+          <button class="btn btn-sm" onclick="exportarPDF()">PDF</button>
+          <button class="btn btn-sm" onclick="exportarExcel()">Excel</button>
+        </div>
+      </div>
+
+      <div class="bg-white p-3 rounded shadow-sm mt-3">
+        <h5>Respostas</h5>
+        <div id="bloco-respostas"></div>
+      </div>
+
+      <div class="bg-white p-3 rounded shadow-sm mt-4">
+        <h5>Aniversariantes</h5>
+        <div id="bloco-aniversariantes"></div>
+        <table class="table table-striped mt-2" id="tabela-aniversariantes"></table>
+      </div>
+
+      <div class="bg-white p-3 rounded shadow-sm mt-4">
+        <h5>Cupons Vencendo</h5>
+        <div id="bloco-cupons"></div>
+        <table class="table table-striped mt-2" id="tabela-cupons"></table>
+      </div>
+
+    </main>
   </div>
 
-  <div class="caixa-relatorio">
-    <h5>Respostas</h5>
-    <div id="bloco-respostas"></div>
-  </div>
+<script>
+  const supabase = supabase.createClient(
+    'https://kwktdbinfadztnkghuul.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
+  );
 
-  <div class="caixa-relatorio">
-    <h5>Aniversariantes</h5>
-    <div id="bloco-aniversariantes"></div>
-    <table class="table table-striped" id="tabela-aniversariantes"></table>
-  </div>
+  const inputData = document.getElementById('filtro-data');
+  const tipoPeriodo = document.getElementById('tipo-periodo');
+  inputData.value = new Date().toISOString().split('T')[0];
 
-  <div class="caixa-relatorio">
-    <h5>Cupons Vencendo</h5>
-    <div id="bloco-cupons"></div>
-    <table class="table table-striped" id="tabela-cupons"></table>
-  </div>
+  inputData.addEventListener('change', carregarTudo);
+  tipoPeriodo.addEventListener('change', carregarTudo);
 
-  <script>
-    const supabase = supabase.createClient(
-      'https://kwktdbinfadztnkghuul.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
-    );
+  async function carregarTudo() {
+    const dataBase = new Date(inputData.value);
+    const tipo = tipoPeriodo.value;
+    let inicio = new Date(dataBase);
+    let fim = new Date(dataBase);
+    if (tipo === 'semana') fim.setDate(fim.getDate() + 6);
+    if (tipo === 'mes') fim = new Date(fim.getFullYear(), fim.getMonth() + 1, 0);
+    const dIni = inicio.toISOString().split('T')[0];
+    const dFim = fim.toISOString().split('T')[0];
+    document.getElementById('data-hoje').innerText = `Relatório | ${dIni} a ${dFim}`;
+    await carregarRespostas(dIni, dFim);
+    await carregarAniversariantes(inicio, fim);
+    await carregarCupons(dIni, dFim);
+  }
 
-    const inputData = document.getElementById('filtro-data');
-    const tipoPeriodo = document.getElementById('tipo-periodo');
-    inputData.value = new Date().toISOString().split('T')[0];
+  async function carregarRespostas(inicio, fim) {
+    const { data } = await supabase.from('respostas').select('*').gte('data_envio', inicio).lte('data_envio', fim);
+    document.getElementById('bloco-respostas').innerHTML = data.length ? `${data.length} resposta(s).` : 'Nenhuma resposta encontrada.';
+  }
 
-    inputData.addEventListener('change', carregarTudo);
-    tipoPeriodo.addEventListener('change', carregarTudo);
-
-    async function carregarTudo() {
-      const dataBase = new Date(inputData.value);
-      const tipo = tipoPeriodo.value;
-
-      let inicio = new Date(dataBase);
-      let fim = new Date(dataBase);
-
-      if (tipo === 'semana') fim.setDate(fim.getDate() + 6);
-      if (tipo === 'mes') fim = new Date(fim.getFullYear(), fim.getMonth() + 1, 0);
-
-      const dIni = inicio.toISOString().split('T')[0];
-      const dFim = fim.toISOString().split('T')[0];
-
-      document.getElementById('data-hoje').innerText = `Relatório | ${dIni} a ${dFim}`;
-
-      await carregarRespostas(dIni, dFim);
-      await carregarAniversariantes(inicio, fim);
-      await carregarCupons(dIni, dFim);
+  async function carregarAniversariantes(inicio, fim) {
+    const mesDia = [];
+    for (let d = new Date(inicio); d <= fim; d.setDate(d.getDate() + 1)) {
+      mesDia.push(d.toISOString().slice(5, 10));
     }
+    const { data } = await supabase.from('clientes').select('nome,email,telefone,data_nascimento');
+    const filtrados = data.filter(c => mesDia.includes(c.data_nascimento?.slice(5, 10)));
+    document.getElementById('bloco-aniversariantes').innerText = filtrados.length ? `${filtrados.length} aniversariante(s).` : 'Nenhum aniversariante.';
+    const tabela = document.getElementById('tabela-aniversariantes');
+    tabela.innerHTML = filtrados.length ? `<thead><tr><th>Nome</th><th>Email</th><th>Telefone</th><th>Nascimento</th></tr></thead><tbody>` +
+      filtrados.map(c => `<tr><td>${c.nome}</td><td>${c.email}</td><td>${c.telefone}</td><td>${c.data_nascimento}</td></tr>`).join('') + '</tbody>' : '';
+  }
 
-    async function carregarRespostas(inicio, fim) {
-      const { data } = await supabase.from('respostas').select('*').gte('data_envio', inicio).lte('data_envio', fim);
-      document.getElementById('bloco-respostas').innerHTML = data.length ? `${data.length} resposta(s).` : 'Nenhuma resposta encontrada.';
-    }
+  async function carregarCupons(inicio, fim) {
+    const { data } = await supabase.from('cupons').select('codigo,nome_cliente,data_validade').gte('data_validade', inicio).lte('data_validade', fim);
+    document.getElementById('bloco-cupons').innerText = data.length ? `${data.length} cupom(ns) vencendo.` : 'Nenhum cupom vencendo.';
+    const tabela = document.getElementById('tabela-cupons');
+    tabela.innerHTML = data.length ? `<thead><tr><th>Cliente</th><th>Código</th><th>Validade</th></tr></thead><tbody>` +
+      data.map(c => `<tr><td>${c.nome_cliente}</td><td>${c.codigo}</td><td>${c.data_validade}</td></tr>`).join('') + '</tbody>' : '';
+  }
 
-    async function carregarAniversariantes(inicio, fim) {
-      const mesDia = [];
-      for (let d = new Date(inicio); d <= fim; d.setDate(d.getDate() + 1)) {
-        mesDia.push(d.toISOString().slice(5, 10));
-      }
-      const { data } = await supabase.from('clientes').select('nome,email,telefone,data_nascimento');
-      const filtrados = data.filter(c => mesDia.includes(c.data_nascimento?.slice(5, 10)));
+  function exportarPDF() {
+    html2pdf().from(document.body).set({ filename: 'relatorio.pdf' }).save();
+  }
 
-      document.getElementById('bloco-aniversariantes').innerText = filtrados.length ? `${filtrados.length} aniversariante(s).` : 'Nenhum aniversariante.';
+  function exportarExcel() {
+    const wb = XLSX.utils.book_new();
+    const aniversariantes = XLSX.utils.table_to_sheet(document.getElementById('tabela-aniversariantes'));
+    const cupons = XLSX.utils.table_to_sheet(document.getElementById('tabela-cupons'));
+    XLSX.utils.book_append_sheet(wb, aniversariantes, 'Aniversariantes');
+    XLSX.utils.book_append_sheet(wb, cupons, 'Cupons');
+    XLSX.writeFile(wb, 'relatorio.xlsx');
+  }
 
-      const tabela = document.getElementById('tabela-aniversariantes');
-      tabela.innerHTML = filtrados.length ? `<thead><tr><th>Nome</th><th>Email</th><th>Telefone</th><th>Nascimento</th></tr></thead><tbody>` +
-        filtrados.map(c => `<tr><td>${c.nome}</td><td>${c.email}</td><td>${c.telefone}</td><td>${c.data_nascimento}</td></tr>`).join('') + '</tbody>' : '';
-    }
-
-    async function carregarCupons(inicio, fim) {
-      const { data } = await supabase.from('cupons').select('codigo,nome_cliente,data_validade').gte('data_validade', inicio).lte('data_validade', fim);
-      document.getElementById('bloco-cupons').innerText = data.length ? `${data.length} cupom(ns) vencendo.` : 'Nenhum cupom vencendo.';
-
-      const tabela = document.getElementById('tabela-cupons');
-      tabela.innerHTML = data.length ? `<thead><tr><th>Cliente</th><th>Código</th><th>Validade</th></tr></thead><tbody>` +
-        data.map(c => `<tr><td>${c.nome_cliente}</td><td>${c.codigo}</td><td>${c.data_validade}</td></tr>`).join('') + '</tbody>' : '';
-    }
-
-    function exportarPDF() {
-      html2pdf().from(document.body).set({ filename: 'relatorio.pdf' }).save();
-    }
-
-    function exportarExcel() {
-      const wb = XLSX.utils.book_new();
-      const aniversariantes = XLSX.utils.table_to_sheet(document.getElementById('tabela-aniversariantes'));
-      const cupons = XLSX.utils.table_to_sheet(document.getElementById('tabela-cupons'));
-      XLSX.utils.book_append_sheet(wb, aniversariantes, 'Aniversariantes');
-      XLSX.utils.book_append_sheet(wb, cupons, 'Cupons');
-      XLSX.writeFile(wb, 'relatorio.xlsx');
-    }
-
-    carregarTudo();
-  </script>
+  carregarTudo();
+</script>
 </body>
 </html>
