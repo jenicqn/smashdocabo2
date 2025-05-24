@@ -1,4 +1,4 @@
-<!-- HTML com Supabase atualizado -->
+<!-- HTML com Supabase corrigido (supabaseClient) -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -89,7 +89,7 @@
 
 <script>
   const { createClient } = supabase;
-  const supabase = supabase.createClient(
+  const supabaseClient = createClient(
     'https://kwktdbinfadztnkghuul.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
   );
@@ -117,7 +117,7 @@
   }
 
   async function carregarRespostas(inicio, fim) {
-    const { data } = await supabase.from('respostas').select('*').gte('data_envio', inicio).lte('data_envio', fim);
+    const { data } = await supabaseClient.from('respostas').select('*').gte('data_envio', inicio).lte('data_envio', fim);
     document.getElementById('bloco-respostas').innerHTML = data.length ? `${data.length} resposta(s).` : 'Nenhuma resposta encontrada.';
   }
 
@@ -126,7 +126,7 @@
     for (let d = new Date(inicio); d <= fim; d.setDate(d.getDate() + 1)) {
       mesDia.push(d.toISOString().slice(5, 10));
     }
-    const { data } = await supabase.from('feedback_detalhado').select('nome,email,telefone,data_nascimento');
+    const { data } = await supabaseClient.from('feedback_detalhado').select('nome,email,telefone,data_nascimento');
     const filtrados = data.filter(c => mesDia.includes(c.data_nascimento?.slice(5, 10)));
     document.getElementById('bloco-aniversariantes').innerText = filtrados.length ? `${filtrados.length} aniversariante(s).` : 'Nenhum aniversariante.';
     const tabela = document.getElementById('tabela-aniversariantes');
@@ -135,7 +135,7 @@
   }
 
   async function carregarCupons(inicio, fim) {
-    const { data } = await supabase.from('cupons').select('codigo,cliente_nome,valido_ate').gte('valido_ate', inicio).lte('valido_ate', fim);
+    const { data } = await supabaseClient.from('cupons').select('codigo,cliente_nome,valido_ate').gte('valido_ate', inicio).lte('valido_ate', fim);
     document.getElementById('bloco-cupons').innerText = data.length ? `${data.length} cupom(ns) vencendo.` : 'Nenhum cupom vencendo.';
     const tabela = document.getElementById('tabela-cupons');
     tabela.innerHTML = data.length ? `<thead><tr><th>Cliente</th><th>Código</th><th>Validade</th></tr></thead><tbody>` +
