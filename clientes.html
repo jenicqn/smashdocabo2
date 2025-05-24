@@ -76,37 +76,54 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
 
     async function carregarClientes() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=nome,email,telefone,nascimento,created_at`, {
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=nome,email,telefone,data_nascimento,created_at`, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
+
+        if (!res.ok) {
+          const erro = await res.json();
+          console.error("Erro na requisição:", erro);
+          return;
         }
-      });
-      const dados = await res.json();
-      const tbody = document.getElementById('tabelaClientes');
 
-      const contatosUnicos = {};
-      dados.forEach(d => {
-        const key = `${d.nome}|${d.email}|${d.telefone}`;
-        if (!contatosUnicos[key]) contatosUnicos[key] = d;
-      });
+        const dados = await res.json();
 
-      Object.values(contatosUnicos).forEach(cli => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${cli.nome || '-'}</td>
-          <td>${cli.email || '-'}</td>
-          <td>${cli.telefone || '-'}</td>
-          <td>${cli.nascimento || '-'}</td>
-          <td>${new Date(cli.created_at).toLocaleDateString()}</td>
-          <td>
-            <button class="btn btn-sm btn-primary me-2" title="Editar"><i class="bi bi-pencil"></i></button>
-            <a href="https://wa.me/55${cli.telefone?.replace(/[^0-9]/g, '')}" target="_blank" class="btn btn-sm btn-success me-2" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
-            <button class="btn btn-sm btn-danger" title="Excluir"><i class="bi bi-trash"></i></button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
+        if (!Array.isArray(dados)) {
+          console.error("Resposta não é uma lista:", dados);
+          return;
+        }
+
+        const tbody = document.getElementById('tabelaClientes');
+        const contatosUnicos = {};
+
+        dados.forEach(d => {
+          const key = `${d.nome}|${d.email}|${d.telefone}`;
+          if (!contatosUnicos[key]) contatosUnicos[key] = d;
+        });
+
+        Object.values(contatosUnicos).forEach(cli => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${cli.nome || '-'}</td>
+            <td>${cli.email || '-'}</td>
+            <td>${cli.telefone || '-'}</td>
+            <td>${cli.data_nascimento || '-'}</td>
+            <td>${new Date(cli.created_at).toLocaleDateString()}</td>
+            <td>
+              <button class="btn btn-sm btn-primary me-2" title="Editar"><i class="bi bi-pencil"></i></button>
+              <a href="https://wa.me/55${cli.telefone?.replace(/[^0-9]/g, '')}" target="_blank" class="btn btn-sm btn-success me-2" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+              <button class="btn btn-sm btn-danger" title="Excluir"><i class="bi bi-trash"></i></button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Erro ao carregar clientes:", err);
+      }
     }
 
     carregarClientes();
