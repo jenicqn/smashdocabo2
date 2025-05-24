@@ -13,29 +13,6 @@
       font-family: 'Segoe UI', sans-serif;
       background-color: #f4f6fa;
     }
-    .sidebar {
-      width: 220px;
-      background-color: #0f172a;
-      color: white;
-      min-height: 100vh;
-    }
-    .sidebar h4 {
-      padding: 20px;
-      margin: 0;
-      font-size: 20px;
-      font-weight: bold;
-      border-bottom: 1px solid #1e2a47;
-    }
-    .sidebar a {
-      display: block;
-      padding: 15px 20px;
-      color: white;
-      text-decoration: none;
-    }
-    .sidebar a:hover,
-    .sidebar a.active {
-      background-color: #1e2a47;
-    }
     .content {
       flex: 1;
       padding: 30px;
@@ -50,15 +27,7 @@
   </style>
 </head>
 <body>
-  <div class="sidebar">
-    <h4>Painel</h4>
-    <a href="painel.html">Início</a>
-    <a href="respostas.html">Gestão das Respostas</a>
-    <a href="usuarios.html">Usuários</a>
-    <a href="cupons.html">Cupons</a>
-    <a href="clientes.html">Clientes</a>
-    <a href="pesquisas.html" class="active">Pesquisas</a>
-  </div>
+  <div id="menuLateral"></div>
 
   <div class="content">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -78,7 +47,6 @@
         </tr>
       </thead>
       <tbody id="tabelaPesquisas">
-        <!-- Dados simulados -->
         <tr>
           <td>Cardápio/Instagram</td>
           <td>Smash do Cabo</td>
@@ -112,12 +80,16 @@
   </div>
 
   <script>
+    // Carrega o layout lateral
+    fetch("layout.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("menuLateral").innerHTML = html;
+      });
+
     function adicionarPesquisa() {
       window.location.href = 'adicionar_pesquisa.html';
     }
-
-    // Aqui você vai substituir pelos dados reais do Supabase mais tarde.
   </script>
 </body>
 </html>
-
