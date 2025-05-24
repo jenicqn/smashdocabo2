@@ -5,153 +5,183 @@
   <title>Gestão das Respostas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      background-color: #f4f6fa;
       margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6fa;
       display: flex;
     }
     .sidebar {
-      width: 240px;
-      background-color: #0e1628;
+      width: 220px;
+      background-color: #0f172a;
       color: white;
-      height: 100vh;
-      padding-top: 20px;
+      min-height: 100vh;
+    }
+    .sidebar h4 {
+      padding: 20px;
+      margin: 0;
+      font-size: 20px;
+      font-weight: bold;
+      border-bottom: 1px solid #1e2a47;
     }
     .sidebar a {
       display: block;
-      padding: 12px 20px;
+      padding: 15px 20px;
       color: white;
       text-decoration: none;
     }
     .sidebar a:hover,
     .sidebar a.active {
-      background-color: #1f2a48;
-      border-left: 4px solid #f97316;
+      background-color: #1e2a47;
     }
     .content {
       flex: 1;
+      padding: 30px;
     }
-    .header {
-      height: 60px;
-      padding: 10px 30px;
-      display: flex;
-      justify-content: end;
-      align-items: center;
-      background: white;
-      border-bottom: 1px solid #ccc;
+    .chart-container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     }
-    .user-info {
-      font-weight: bold;
-    }
-    .logout-btn {
-      background: none;
-      border: none;
-      color: black;
+    .chart-title {
       font-size: 18px;
-      margin-left: 10px;
-      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 8px;
     }
-    .table th {
-      background-color: #eaeaea;
+    .chart-subtitle {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
   <div class="sidebar">
+    <h4>Painel</h4>
     <a href="painel.html">Início</a>
     <a href="respostas.html" class="active">Gestão das Respostas</a>
     <a href="usuarios.html">Usuários</a>
     <a href="cupons.html">Cupons</a>
   </div>
-
   <div class="content">
-    <div class="header">
-      <span class="user-info" id="usuarioInfo">Olá, Usuário</span>
-      <button onclick="logout()" class="logout-btn" title="Sair">🚪</button>
-    </div>
-
-    <div class="container mt-4">
-      <h4>Respostas Coletadas</h4>
-      <table class="table table-striped table-bordered align-middle" id="tabela-respostas">
-        <thead>
-          <tr>
-            <th>Data/Hora</th>
-            <th>Cliente</th>
-            <th>Telefone</th>
-            <th>Email</th>
-            <th>Morador</th>
-            <th>Atendimento</th>
-            <th>Qualidade</th>
-            <th>Tempo</th>
-            <th>Variedade</th>
-            <th>Custo-benefício</th>
-            <th>Indicação (NPS)</th>
-            <th>Falta</th>
-            <th>Origem</th>
-            <th class="text-center">WhatsApp</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="chart-container">
+          <div class="chart-title">Horário</div>
+          <div class="chart-subtitle">Horário de pico das Respostas ao longo do dia.</div>
+          <canvas id="graficoHorario"></canvas>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="chart-container">
+          <div class="chart-title">Dias da Semana</div>
+          <div class="chart-subtitle">Distribuição das Respostas ao longo dos dias da semana.</div>
+          <canvas id="graficoSemana"></canvas>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="chart-container">
+          <div class="chart-title">Dias do Mês</div>
+          <div class="chart-subtitle">Número total de Respostas distribuídas ao longo do mês.</div>
+          <canvas id="graficoMes"></canvas>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="chart-container">
+          <div class="chart-title">Clientes</div>
+          <div class="chart-subtitle">Proporção total de respostas entre clientes com e sem cadastro.</div>
+          <canvas id="graficoCadastro"></canvas>
+        </div>
+      </div>
     </div>
   </div>
-
   <script>
     const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
 
-    const usuario = JSON.parse(localStorage.getItem('usuario'));
-    if (!usuario) window.location.href = 'index.html';
-    document.getElementById('usuarioInfo').textContent = `Olá, ${usuario.nome || 'Usuário'}`;
+    async function carregarDados() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=created_at,morador`, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+      const dados = await res.json();
+      const horas = Array(24).fill(0);
+      const semana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'].map(d => ({ label: d, total: 0 }));
+      const mes = [0, 0, 0, 0, 0]; // faixas 1-7, 8-14, 15-21, 22-27, 28-31
+      let comCadastro = 0, semCadastro = 0;
 
-    function logout() {
-      localStorage.removeItem('usuario');
-      window.location.href = 'index.html';
+      dados.forEach(d => {
+        const dt = new Date(d.created_at);
+        horas[dt.getHours()]++;
+        semana[dt.getDay()].total++;
+        const dia = dt.getDate();
+        if (dia <= 7) mes[0]++;
+        else if (dia <= 14) mes[1]++;
+        else if (dia <= 21) mes[2]++;
+        else if (dia <= 27) mes[3]++;
+        else mes[4]++;
+        if (d.morador?.toLowerCase().includes('sim')) comCadastro++;
+        else semCadastro++;
+      });
+
+      new Chart(graficoHorario, {
+        type: 'bar',
+        data: {
+          labels: horas.map((_, i) => i + 'h'),
+          datasets: [{
+            label: 'Respostas',
+            data: horas,
+            backgroundColor: '#3b82f6'
+          }]
+        }
+      });
+
+      new Chart(graficoSemana, {
+        type: 'bar',
+        data: {
+          labels: semana.map(d => d.label),
+          datasets: [{
+            label: 'Respostas',
+            data: semana.map(d => d.total),
+            backgroundColor: '#f97316'
+          }]
+        }
+      });
+
+      new Chart(graficoMes, {
+        type: 'bar',
+        data: {
+          labels: ['1 ao 7', '8 ao 14', '15 ao 21', '22 ao 27', '28 ao 31'],
+          datasets: [{
+            label: 'Respostas',
+            data: mes,
+            backgroundColor: ['#0ea5e9', '#f59e0b', '#0ea5e9', '#f59e0b', '#0ea5e9']
+          }]
+        }
+      });
+
+      new Chart(graficoCadastro, {
+        type: 'doughnut',
+        data: {
+          labels: ['Com Cadastro', 'Sem Cadastro'],
+          datasets: [{
+            data: [comCadastro, semCadastro],
+            backgroundColor: ['#0ea5e9', '#f97316']
+          }]
+        },
+        options: {
+          cutout: '70%'
+        }
+      });
     }
 
-    async function carregarRespostas() {
-      try {
-        const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*`, {
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-          }
-        });
-
-        const dados = await resposta.json();
-        const tbody = document.querySelector('#tabela-respostas tbody');
-        tbody.innerHTML = '';
-
-        dados.reverse().forEach(res => {
-          const linha = document.createElement('tr');
-          linha.innerHTML = `
-            <td>${new Date(res.created_at).toLocaleString('pt-BR')}</td>
-            <td>${res.nome || '-'}</td>
-            <td>${res.telefone || '-'}</td>
-            <td>${res.email || '-'}</td>
-            <td>${res.morador || '-'}</td>
-            <td>${res.atendimento ?? '-'}</td>
-            <td>${res.qualidade ?? '-'}</td>
-            <td>${res.tempo ?? '-'}</td>
-            <td>${res.variedade ?? '-'}</td>
-            <td>${res.custobeneficio ?? '-'}</td>
-            <td>${res.indicacao ?? '-'}</td>
-            <td>${res.falta || '-'}</td>
-            <td>${res.origem || '-'}</td>
-            <td class="text-center">
-              ${res.telefone ? `<a href="https://wa.me/55${res.telefone.replace(/\D/g, '')}" target="_blank" class="btn btn-sm btn-success">WhatsApp</a>` : '-'}
-            </td>
-          `;
-          tbody.appendChild(linha);
-        });
-
-      } catch (error) {
-        console.error('Erro ao carregar respostas:', error);
-      }
-    }
-
-    carregarRespostas();
+    carregarDados();
   </script>
 </body>
 </html>
