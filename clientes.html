@@ -1,1 +1,158 @@
 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestão das Respostas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f6fa;
+      margin: 0;
+      display: flex;
+    }
+    .sidebar {
+      width: 240px;
+      background-color: #0e1628;
+      color: white;
+      height: 100vh;
+      padding-top: 20px;
+    }
+    .sidebar a {
+      display: block;
+      padding: 12px 20px;
+      color: white;
+      text-decoration: none;
+    }
+    .sidebar a:hover,
+    .sidebar a.active {
+      background-color: #1f2a48;
+      border-left: 4px solid #f97316;
+    }
+    .content {
+      flex: 1;
+    }
+    .header {
+      height: 60px;
+      padding: 10px 30px;
+      display: flex;
+      justify-content: end;
+      align-items: center;
+      background: white;
+      border-bottom: 1px solid #ccc;
+    }
+    .user-info {
+      font-weight: bold;
+    }
+    .logout-btn {
+      background: none;
+      border: none;
+      color: black;
+      font-size: 18px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+    .table th {
+      background-color: #eaeaea;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <a href="painel.html">Início</a>
+    <a href="respostas.html" class="active">Gestão das Respostas</a>
+    <a href="usuarios.html">Usuários</a>
+    <a href="cupons.html">Cupons</a>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <span class="user-info" id="usuarioInfo">Olá, Usuário</span>
+      <button onclick="logout()" class="logout-btn" title="Sair">🚪</button>
+    </div>
+
+    <div class="container mt-4">
+      <h4>Respostas Coletadas</h4>
+      <table class="table table-striped table-bordered align-middle" id="tabela-respostas">
+        <thead>
+          <tr>
+            <th>Data/Hora</th>
+            <th>Cliente</th>
+            <th>Telefone</th>
+            <th>Email</th>
+            <th>Morador</th>
+            <th>Atendimento</th>
+            <th>Qualidade</th>
+            <th>Tempo</th>
+            <th>Variedade</th>
+            <th>Custo-benefício</th>
+            <th>Indicação (NPS)</th>
+            <th>Falta</th>
+            <th>Origem</th>
+            <th class="text-center">WhatsApp</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY';
+
+    const usuario = JSON.parse(localStorage.getItem('usuario'));
+    if (!usuario) window.location.href = 'index.html';
+    document.getElementById('usuarioInfo').textContent = `Olá, ${usuario.nome || 'Usuário'}`;
+
+    function logout() {
+      localStorage.removeItem('usuario');
+      window.location.href = 'index.html';
+    }
+
+    async function carregarRespostas() {
+      try {
+        const resposta = await fetch(`${SUPABASE_URL}/rest/v1/feedback_detalhado?select=*`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
+
+        const dados = await resposta.json();
+        const tbody = document.querySelector('#tabela-respostas tbody');
+        tbody.innerHTML = '';
+
+        dados.reverse().forEach(res => {
+          const linha = document.createElement('tr');
+          linha.innerHTML = `
+            <td>${new Date(res.created_at).toLocaleString('pt-BR')}</td>
+            <td>${res.nome || '-'}</td>
+            <td>${res.telefone || '-'}</td>
+            <td>${res.email || '-'}</td>
+            <td>${res.morador || '-'}</td>
+            <td>${res.atendimento ?? '-'}</td>
+            <td>${res.qualidade ?? '-'}</td>
+            <td>${res.tempo ?? '-'}</td>
+            <td>${res.variedade ?? '-'}</td>
+            <td>${res.custobeneficio ?? '-'}</td>
+            <td>${res.indicacao ?? '-'}</td>
+            <td>${res.falta || '-'}</td>
+            <td>${res.origem || '-'}</td>
+            <td class="text-center">
+              ${res.telefone ? `<a href="https://wa.me/55${res.telefone.replace(/\D/g, '')}" target="_blank" class="btn btn-sm btn-success">WhatsApp</a>` : '-'}
+            </td>
+          `;
+          tbody.appendChild(linha);
+        });
+
+      } catch (error) {
+        console.error('Erro ao carregar respostas:', error);
+      }
+    }
+
+    carregarRespostas();
+  </script>
+</body>
+</html>
