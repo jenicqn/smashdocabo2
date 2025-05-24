@@ -24,7 +24,7 @@
       </div>
       <div class="mb-3">
         <label class="form-label">Data de Nascimento</label>
-        <input type="date" class="form-control" id="nascimento" />
+        <input type="date" class="form-control" id="data_nascimento" />
       </div>
       <button type="submit" class="btn btn-primary">Salvar</button>
       <a href="clientes.html" class="btn btn-secondary ms-2">Cancelar</a>
@@ -50,7 +50,7 @@
         document.getElementById('nome').value = cliente.nome || '';
         document.getElementById('email').value = cliente.email || '';
         document.getElementById('telefone').value = cliente.telefone || '';
-        document.getElementById('nascimento').value = cliente.nascimento || '';
+        document.getElementById('nascimento').value = cliente.data_nascimento || '';
       }
     }
 
