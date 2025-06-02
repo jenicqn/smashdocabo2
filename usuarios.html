@@ -33,31 +33,6 @@
     .btn-toggle { background-color: #6c757d; color: white; }
   </style>
 </head>
-<script>
-  // Tempo máximo de inatividade (em milissegundos) – 15 minutos
-  const TEMPO_MAXIMO_INATIVIDADE = 15 * 60 * 1000;
-
-  let tempoUltimaAtividade = Date.now();
-
-  // Atualiza o tempo sempre que houver alguma interação
-  function atualizarAtividade() {
-    tempoUltimaAtividade = Date.now();
-  }
-
-  // Eventos que contam como atividade do usuário
-  ['click', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach(evento => {
-    window.addEventListener(evento, atualizarAtividade);
-  });
-
-  // Verifica a cada 30 segundos se o tempo limite foi atingido
-  setInterval(() => {
-    if (Date.now() - tempoUltimaAtividade > TEMPO_MAXIMO_INATIVIDADE) {
-      alert('Sessão expirada por inatividade.');
-      logout(); // já existente no seu projeto
-    }
-  }, 30000);
-</script>
-
 <body>
   <div class="sidebar">
     <div>
@@ -157,19 +132,24 @@ if (nivel !== 'adm') {
 document.querySelectorAll('[data-only="adm"]').forEach(el => {
   if (nivel !== 'adm') el.style.display = 'none';
 });
+
 function logout() {
   localStorage.clear();
+  localStorage.removeItem('logoutExecutado'); // limpa o flag de inatividade
   window.location.href = 'index.html';
 }
+
 function abrirModalNovoUsuario() {
   window.location.href = 'usuarios.html#novo';
 }
+
 function abrirModalEditar(id, nome, email) {
   document.getElementById('editarId').value = id;
   document.getElementById('editarNome').value = nome;
   document.getElementById('editarEmail').value = email;
   new bootstrap.Modal(document.getElementById('modalEditarUsuario')).show();
 }
+
 function abrirModalSenha(id) {
   document.getElementById('senhaId').value = id;
   document.getElementById('novaSenha').value = '';
@@ -177,11 +157,13 @@ function abrirModalSenha(id) {
   document.getElementById('alertSenha').classList.add('d-none');
   new bootstrap.Modal(document.getElementById('modalSenha')).show();
 }
+
 async function excluirUsuario(id) {
   if (!confirm('Deseja realmente excluir este usuário?')) return;
   await fetch(`https://supabase-user-api-painel.vercel.app/api/excluir-usuario?id=${id}`, { method: 'DELETE' });
   carregarUsuarios();
 }
+
 async function alternarStatus(id, statusAtual) {
   const novoStatus = !statusAtual;
   await fetch('https://supabase-user-api-painel.vercel.app/api/atualizar-status', {
@@ -191,6 +173,7 @@ async function alternarStatus(id, statusAtual) {
   });
   carregarUsuarios();
 }
+
 document.getElementById('formEditarUsuario').addEventListener('submit', async function(e) {
   e.preventDefault();
   const id = document.getElementById('editarId').value;
@@ -204,6 +187,7 @@ document.getElementById('formEditarUsuario').addEventListener('submit', async fu
   bootstrap.Modal.getInstance(document.getElementById('modalEditarUsuario')).hide();
   carregarUsuarios();
 });
+
 document.getElementById('formSenha').addEventListener('submit', async function(e) {
   e.preventDefault();
   const id = document.getElementById('senhaId').value;
@@ -211,6 +195,7 @@ document.getElementById('formSenha').addEventListener('submit', async function(e
   const confirmar = document.getElementById('confirmarSenha').value;
   const alerta = document.getElementById('alertSenha');
   alerta.classList.add('d-none');
+
   if (senha !== confirmar) {
     alerta.textContent = 'As senhas não coincidem.';
     alerta.classList.remove('d-none');
@@ -218,11 +203,13 @@ document.getElementById('formSenha').addEventListener('submit', async function(e
     alerta.classList.add('alert-danger');
     return;
   }
+
   const res = await fetch('https://supabase-user-api-painel.vercel.app/api/atualizar-senha', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id, senha })
   });
+
   if (res.ok) {
     alerta.textContent = 'Senha atualizada com sucesso!';
     alerta.classList.remove('d-none');
@@ -236,6 +223,7 @@ document.getElementById('formSenha').addEventListener('submit', async function(e
     alerta.classList.add('alert-danger');
   }
 });
+
 async function carregarUsuarios() {
   const resposta = await fetch('https://supabase-user-api-painel.vercel.app/api/listar-usuarios');
   const data = await resposta.json();
@@ -262,7 +250,32 @@ async function carregarUsuarios() {
   document.getElementById('carregandoUsuarios').classList.add('d-none');
   document.getElementById('tabelaUsuarios').classList.remove('d-none');
 }
+
 carregarUsuarios();
+
+// ========== Controle de Inatividade ==========
+const TEMPO_MAXIMO_INATIVIDADE = 15 * 60 * 1000;
+let tempoUltimaAtividade = Date.now();
+
+function atualizarAtividade() {
+  tempoUltimaAtividade = Date.now();
+  localStorage.removeItem('logoutExecutado');
+}
+
+['click', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach(evento => {
+  window.addEventListener(evento, atualizarAtividade);
+});
+
+setInterval(() => {
+  if (Date.now() - tempoUltimaAtividade > TEMPO_MAXIMO_INATIVIDADE) {
+    if (!localStorage.getItem('logoutExecutado')) {
+      localStorage.setItem('logoutExecutado', 'true');
+      alert('Sessão expirada por inatividade.');
+      logout();
+    }
+  }
+}, 30000);
 </script>
+
 </body>
 </html>
