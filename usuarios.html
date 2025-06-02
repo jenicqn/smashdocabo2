@@ -33,6 +33,31 @@
     .btn-toggle { background-color: #6c757d; color: white; }
   </style>
 </head>
+<script>
+  // Tempo máximo de inatividade (em milissegundos) – 15 minutos
+  const TEMPO_MAXIMO_INATIVIDADE = 15 * 60 * 1000;
+
+  let tempoUltimaAtividade = Date.now();
+
+  // Atualiza o tempo sempre que houver alguma interação
+  function atualizarAtividade() {
+    tempoUltimaAtividade = Date.now();
+  }
+
+  // Eventos que contam como atividade do usuário
+  ['click', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach(evento => {
+    window.addEventListener(evento, atualizarAtividade);
+  });
+
+  // Verifica a cada 30 segundos se o tempo limite foi atingido
+  setInterval(() => {
+    if (Date.now() - tempoUltimaAtividade > TEMPO_MAXIMO_INATIVIDADE) {
+      alert('Sessão expirada por inatividade.');
+      logout(); // já existente no seu projeto
+    }
+  }, 30000);
+</script>
+
 <body>
   <div class="sidebar">
     <div>
