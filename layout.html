@@ -5,6 +5,9 @@
     background-color: #0f172a;
     color: white;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
   .sidebar h4 {
     padding: 20px;
@@ -23,15 +26,43 @@
   .sidebar a.active {
     background-color: #1e2a47;
   }
+  .logout-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    margin: 20px;
+    border-radius: 4px;
+    text-align: center;
+    cursor: pointer;
+  }
 </style>
 
 <div class="sidebar">
-  <h4>Painel</h4>
-  <a href="painel.html">Início</a>
-  <a href="cupons.html">Cupons</a>
-  <a href="clientes.html">Clientes</a>
-  <a href="pesquisas.html">Pesquisas</a>
-  <a href="respostas.html">Respostas</a>
-  <a href="relatorios.html">Relatórios</a>
-  <a href="usuarios.html">Usuários</a>
+  <div>
+    <h4>Painel</h4>
+    <a href="painel.html">Início</a>
+    <a href="cupons.html" data-only="adm">Cupons</a>
+    <a href="clientes.html" data-only="adm">Clientes</a>
+    <a href="pesquisas.html">Pesquisas</a>
+    <a href="respostas.html">Respostas</a>
+    <a href="relatorios.html" data-only="adm">Relatórios</a>
+    <a href="usuarios.html" data-only="adm">Usuários</a>
+  </div>
+  <button class="logout-btn" onclick="logout()">Sair</button>
 </div>
+
+<script>
+  const nivel = localStorage.getItem('nivel');
+
+  // Esconde links exclusivos de adm se for 'user'
+  if (nivel !== 'adm') {
+    document.querySelectorAll('[data-only="adm"]').forEach(el => el.style.display = 'none');
+  }
+
+  function logout() {
+    localStorage.removeItem('usuarioLogado');
+    localStorage.removeItem('nivel');
+    window.location.href = 'index.html';
+  }
+</script>
