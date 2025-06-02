@@ -1,4 +1,4 @@
-<!DOCTYPE html>Add commentMore actions
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -6,16 +6,24 @@
   <title>Usuários</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <style>
     body {
-      background-color: #f4f6fa;
       margin: 0;
-      display: flex;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
     }
-    .content {
+    .conteudo {
       flex: 1;
       padding: 40px;
+      background-color: #f4f6fa;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
     }
     .btn-icon {
       width: 32px;
@@ -28,39 +36,66 @@
     }
     .btn-edit { background-color: #0d6efd; }
     .btn-password { background-color: #198754; }
-    .btn-delete { background-color: #dc3545; }
-    .header {
+    .sidebar {
+      width: 220px;
+      background-color: #0f172a;
+      color: white;
+      min-height: 100vh;
       display: flex;
+      flex-direction: column;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-      gap: 12px;
+    }
+    .sidebar h4 {
+      padding: 20px;
+      margin: 0;
+      font-size: 20px;
+      font-weight: bold;
+      border-bottom: 1px solid #1e2a47;
+    }
+    .sidebar a {
+      display: block;
+      padding: 15px 20px;
+      color: white;
+      text-decoration: none;
+    }
+    .sidebar a:hover,
+    .sidebar a.active {
+      background-color: #1e2a47;
     }
     .logout-btn {
-      background-color: #dc3545;
-      border: none;
+      background: #dc3545;
       color: white;
-      padding: 6px 12px;
+      border: none;
+      padding: 12px 20px;
+      margin: 20px;
       border-radius: 4px;
+      text-align: center;
       cursor: pointer;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-<script>
-  if (localStorage.getItem('nivel') !== 'adm') {
-    alert('Acesso restrito. Você será redirecionado.');
-    window.location.href = 'respostas.html';
-  }
-</script>
 
-<div id="menuLateral"></div>
-<div class="content">
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div>
+    <h4>Painel</h4>
+    <a href="painel.html">Início</a>
+    <a href="cupons.html" data-only="adm">Cupons</a>
+    <a href="clientes.html" data-only="adm">Clientes</a>
+    <a href="pesquisas.html">Pesquisas</a>
+    <a href="respostas.html">Respostas</a>
+    <a href="relatorios.html" data-only="adm">Relatórios</a>
+    <a href="usuarios.html" data-only="adm" class="active">Usuários</a>
+  </div>
+  <button class="logout-btn" onclick="logout()">Sair</button>
+</div>
+
+<!-- CONTEÚDO -->
+<div class="conteudo">
   <div class="header">
     <h3>Lista de Usuários</h3>
     <button class="btn btn-primary" onclick="abrirModalNovoUsuario()">+ Novo Usuário</button>
-    <button class="logout-btn" onclick="logout()">Sair</button>
   </div>
 
   <div id="carregandoUsuarios">Carregando usuários...</div>
@@ -78,78 +113,64 @@
   </table>
 </div>
 
-<div class="modal fade" id="modalNovoUsuario" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form id="formNovoUsuario">
-        <div class="modal-header">
-          <h5 class="modal-title">Novo Usuário</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">Nome</label>
-            <input type="text" class="form-control" id="novoNome" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">E-mail</label>
-            <input type="email" class="form-control" id="novoEmail" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Nível</label>
-            <select class="form-select" id="novoNivel" required>
-              <option value="adm">Administrador</option>
-              <option value="user">Funcionário</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Senha</label>
-            <input type="password" class="form-control" id="novaSenha" required minlength="6">
-          </div>
-          <div id="msgErro" class="text-danger small d-none"></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-success">Salvar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Trocar Senha -->
-<div class="modal fade" id="modalTrocarSenha" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form id="formTrocarSenha">
-        <div class="modal-header">
-          <h5 class="modal-title">Trocar Senha</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" id="idTrocaSenha">
-          <div class="mb-3">
-            <label class="form-label">Nova Senha</label>
-            <input type="password" class="form-control" id="novaSenhaModal" required minlength="6">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Confirmar Nova Senha</label>
-            <input type="password" class="form-control" id="confirmarSenhaModal" required minlength="6">
-          </div>
-          <div id="erroTroca" class="text-danger small d-none"></div>
-          <div id="sucessoTroca" class="text-success small d-none"></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-success">Atualizar Senha</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
+<!-- SCRIPT DE ACESSO E MENU -->
 <script>
-  // scripts existentes permanecem aqui
+  const nivel = localStorage.getItem('nivel');
+  if (nivel !== 'adm') {
+    alert('Acesso restrito.');
+    window.location.href = 'respostas.html';
+  }
+
+  document.querySelectorAll('[data-only="adm"]').forEach(el => {
+    if (nivel !== 'adm') el.style.display = 'none';
+  });
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = 'index.html';
+  }
 </script>
+
+<!-- SUPABASE + USUÁRIOS -->
+<script>
+  const supabase = supabase.createClient(
+    'https://kwktdbinfadztnkghuul.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
+  );
+
+  async function carregarUsuarios() {
+    const { data, error } = await supabase
+      .from('usuarios_painel2')
+      .select('*');
+
+    if (error) {
+      document.getElementById('carregandoUsuarios').innerText = 'Erro ao carregar usuários.';
+      return;
+    }
+
+    const corpoTabela = document.getElementById('corpoTabela');
+    corpoTabela.innerHTML = '';
+    data.forEach(usuario => {
+      const linha = document.createElement('tr');
+      linha.innerHTML = `
+        <td>${usuario.nome}</td>
+        <td>${usuario.email}</td>
+        <td>${usuario.ativo ? 'Ativo' : 'Inativo'}</td>
+        <td>${usuario.nivel}</td>
+        <td>
+          <button class="btn-icon btn-edit" onclick="editarUsuario('${usuario.id}')"><i class="bi bi-pencil"></i></button>
+          <button class="btn-icon btn-password" onclick="abrirModalTrocarSenha('${usuario.id}')"><i class="bi bi-key"></i></button>
+        </td>
+      `;
+      corpoTabela.appendChild(linha);
+    });
+
+    document.getElementById('carregandoUsuarios').classList.add('d-none');
+    document.getElementById('tabelaUsuarios').classList.remove('d-none');
+  }
+
+  carregarUsuarios();
+</script>
+
 </body>
 </html>
