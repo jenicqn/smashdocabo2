@@ -4,11 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Usuários</title>
+  <link rel="icon" href="data:,">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <link rel="icon" href="data:,">
-
   <style>
     body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; }
     .conteudo { flex: 1; padding: 40px; background-color: #f4f6fa; }
@@ -36,9 +35,9 @@
   </style>
 </head>
 <body>
-  <!-- layout e modais omitidos para brevidade -->
+<!-- layout e modais omitidos para brevidade -->
 <script>
-  window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', () => {
   const nivel = localStorage.getItem('nivel');
   if (nivel !== 'adm') {
     alert('Acesso restrito.');
@@ -47,30 +46,37 @@
   document.querySelectorAll('[data-only="adm"]').forEach(el => {
     if (nivel !== 'adm') el.style.display = 'none';
   });
+
   function logout() {
     localStorage.clear();
     window.location.href = 'index.html';
   }
+
   function abrirModalNovoUsuario() {
     window.location.href = 'usuarios.html#novo';
   }
+
   function abrirModalEditar(id, nome, email) {
     document.getElementById('editarId').value = id;
     document.getElementById('editarNome').value = nome;
     document.getElementById('editarEmail').value = email;
     new bootstrap.Modal(document.getElementById('modalEditarUsuario')).show();
   }
+
   function abrirModalSenha(id) {
     document.getElementById('senhaId').value = id;
     document.getElementById('novaSenha').value = '';
     document.getElementById('confirmarSenha').value = '';
+    document.getElementById('alertSenha').classList.add('d-none');
     new bootstrap.Modal(document.getElementById('modalSenha')).show();
   }
+
   async function excluirUsuario(id) {
     if (!confirm('Deseja realmente excluir este usuário?')) return;
     await fetch(`https://supabase-user-api-painel.vercel.app/api/excluir-usuario?id=${id}`, { method: 'DELETE' });
     carregarUsuarios();
   }
+
   async function alternarStatus(id, statusAtual) {
     const novoStatus = !statusAtual;
     await fetch('https://supabase-user-api-painel.vercel.app/api/atualizar-status', {
@@ -80,6 +86,7 @@
     });
     carregarUsuarios();
   }
+
   document.getElementById('formEditarUsuario').addEventListener('submit', async function(e) {
     e.preventDefault();
     const id = document.getElementById('editarId').value;
@@ -93,16 +100,21 @@
     bootstrap.Modal.getInstance(document.getElementById('modalEditarUsuario')).hide();
     carregarUsuarios();
   });
+
   document.getElementById('formSenha').addEventListener('submit', async function(e) {
     e.preventDefault();
     const id = document.getElementById('senhaId').value;
     const senha = document.getElementById('novaSenha').value;
     const confirmar = document.getElementById('confirmarSenha').value;
+    const msg = document.getElementById('alertSenha');
     const btn = this.querySelector('button[type=submit]');
+    msg.classList.add('d-none');
     btn.disabled = true;
     btn.textContent = 'Atualizando...';
     if (senha !== confirmar) {
-      alert('As senhas não coincidem.');
+      msg.classList.remove('d-none');
+      msg.classList.replace('alert-success', 'alert-danger');
+      msg.innerHTML = 'As senhas não coincidem.';
       btn.disabled = false;
       btn.textContent = 'Atualizar';
       return;
@@ -114,18 +126,25 @@
         body: JSON.stringify({ id, senha })
       });
       if (res.ok) {
-        alert('Senha atualizada com sucesso!');
-        bootstrap.Modal.getInstance(document.getElementById('modalSenha')).hide();
+        msg.classList.remove('d-none');
+        msg.classList.replace('alert-danger', 'alert-success');
+        msg.innerHTML = 'Senha atualizada com sucesso!';
+        setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('modalSenha')).hide(), 1000);
       } else {
         const data = await res.json();
-        alert('Erro: ' + (data.error || 'Falha ao atualizar senha.'));
+        msg.classList.remove('d-none');
+        msg.classList.replace('alert-success', 'alert-danger');
+        msg.innerHTML = 'Erro: ' + (data.error || 'Falha ao atualizar senha.');
       }
     } catch (err) {
-      alert('Erro de rede. Verifique sua conexão.');
+      msg.classList.remove('d-none');
+      msg.classList.replace('alert-success', 'alert-danger');
+      msg.innerHTML = 'Erro de rede. Verifique sua conexão.';
     }
     btn.disabled = false;
     btn.textContent = 'Atualizar';
   });
+
   async function carregarUsuarios() {
     const resposta = await fetch('https://supabase-user-api-painel.vercel.app/api/listar-usuarios');
     const data = await resposta.json();
@@ -150,6 +169,7 @@
     document.getElementById('carregandoUsuarios').classList.add('d-none');
     document.getElementById('tabelaUsuarios').classList.remove('d-none');
   }
+
   carregarUsuarios();
 });
 </script>
