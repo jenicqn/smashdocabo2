@@ -36,6 +36,7 @@
 <body>
   <!-- layout e modais omitidos para brevidade -->
 <script>
+  window.addEventListener('DOMContentLoaded', () => {
   const nivel = localStorage.getItem('nivel');
   if (nivel !== 'adm') {
     alert('Acesso restrito.');
@@ -148,6 +149,7 @@
     document.getElementById('tabelaUsuarios').classList.remove('d-none');
   }
   carregarUsuarios();
+});
 </script>
 </body>
 </html>
