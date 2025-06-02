@@ -30,8 +30,8 @@
     }
     .btn-edit { background-color: #0d6efd; color: white; }
     .btn-pass { background-color: #198754; color: white; }
-    .btn-delete { background-color: #dc3545; color: white; }
     .btn-toggle { background-color: #6c757d; color: white; }
+    .btn-delete { background-color: #dc3545; color: white; }
   </style>
 </head>
 <body>
@@ -69,67 +69,147 @@
     </table>
   </div>
 
-  <script>
-    const nivel = localStorage.getItem('nivel');
-    if (nivel !== 'adm') {
-      alert('Acesso restrito.');
-      window.location.href = 'respostas.html';
-    }
-    document.querySelectorAll('[data-only="adm"]').forEach(el => {
-      if (nivel !== 'adm') el.style.display = 'none';
+  <!-- Modal de Senha -->
+  <div class="modal fade" id="modalSenha" tabindex="-1">
+    <div class="modal-dialog">
+      <form id="formSenha" class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Trocar Senha</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="senhaId">
+          <div class="mb-3">
+            <label class="form-label">Nova Senha</label>
+            <input type="password" class="form-control" id="novaSenha" required minlength="6">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Confirmar Senha</label>
+            <input type="password" class="form-control" id="confirmarSenha" required minlength="6">
+          </div>
+          <div id="alertSenha" class="alert d-none"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Atualizar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  const nivel = localStorage.getItem('nivel');
+  if (nivel !== 'adm') {
+    alert('Acesso restrito.');
+    window.location.href = 'respostas.html';
+  }
+  document.querySelectorAll('[data-only="adm"]').forEach(el => el.style.display = 'none');
+
+  window.logout = () => {
+    localStorage.clear();
+    window.location.href = 'index.html';
+  }
+
+  window.abrirModalNovoUsuario = () => {
+    window.location.href = 'usuarios.html#novo';
+  }
+
+  window.abrirModalSenha = (id) => {
+    document.getElementById('senhaId').value = id;
+    document.getElementById('novaSenha').value = '';
+    document.getElementById('confirmarSenha').value = '';
+    document.getElementById('alertSenha').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('modalSenha')).show();
+  }
+
+  window.excluirUsuario = async (id) => {
+    if (!confirm('Deseja realmente excluir este usuário?')) return;
+    await fetch(`https://supabase-user-api-painel.vercel.app/api/excluir-usuario?id=${id}`, { method: 'DELETE' });
+    carregarUsuarios();
+  }
+
+  window.alternarStatus = async (id, statusAtual) => {
+    const novoStatus = !statusAtual;
+    await fetch('https://supabase-user-api-painel.vercel.app/api/atualizar-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ativo: novoStatus })
     });
-    function logout() {
-      localStorage.clear();
-      window.location.href = 'index.html';
+    carregarUsuarios();
+  }
+
+  document.getElementById('formSenha').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const id = document.getElementById('senhaId').value;
+    const senha = document.getElementById('novaSenha').value;
+    const confirmar = document.getElementById('confirmarSenha').value;
+    const msg = document.getElementById('alertSenha');
+    const btn = this.querySelector('button[type=submit]');
+    msg.classList.add('d-none');
+    btn.disabled = true;
+    btn.textContent = 'Atualizando...';
+
+    if (senha !== confirmar) {
+      msg.classList.remove('d-none', 'alert-success');
+      msg.classList.add('alert-danger');
+      msg.textContent = 'As senhas não coincidem.';
+      btn.disabled = false;
+      btn.textContent = 'Atualizar';
+      return;
     }
-    function abrirModalNovoUsuario() {
-      window.location.href = 'usuarios.html#novo';
-    }
-    function abrirModalEditar(id, nome, email) {
-      alert(`Editar: ${nome}`);
-    }
-    function abrirModalSenha(id) {
-      alert(`Trocar senha do ID: ${id}`);
-    }
-    async function excluirUsuario(id) {
-      if (!confirm('Deseja realmente excluir este usuário?')) return;
-      await fetch(`https://supabase-user-api-painel.vercel.app/api/excluir-usuario?id=${id}`, { method: 'DELETE' });
-      carregarUsuarios();
-    }
-    async function alternarStatus(id, statusAtual) {
-      const novoStatus = !statusAtual;
-      await fetch('https://supabase-user-api-painel.vercel.app/api/atualizar-status', {
+
+    try {
+      const res = await fetch('https://supabase-user-api-painel.vercel.app/api/atualizar-senha', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, ativo: novoStatus })
+        body: JSON.stringify({ id, senha })
       });
-      carregarUsuarios();
+      if (res.ok) {
+        msg.classList.remove('d-none', 'alert-danger');
+        msg.classList.add('alert-success');
+        msg.textContent = 'Senha atualizada com sucesso!';
+        setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('modalSenha')).hide(), 1000);
+      } else {
+        const data = await res.json();
+        msg.classList.remove('d-none', 'alert-success');
+        msg.classList.add('alert-danger');
+        msg.textContent = data.error || 'Erro ao atualizar senha.';
+      }
+    } catch {
+      msg.classList.remove('d-none', 'alert-success');
+      msg.classList.add('alert-danger');
+      msg.textContent = 'Erro de rede. Verifique sua conexão.';
     }
-    async function carregarUsuarios() {
-      const resposta = await fetch('https://supabase-user-api-painel.vercel.app/api/listar-usuarios');
-      const data = await resposta.json();
-      const corpoTabela = document.getElementById('corpoTabela');
-      corpoTabela.innerHTML = '';
-      data.forEach(usuario => {
-        const linha = document.createElement('tr');
-        linha.innerHTML = `
-          <td>${usuario.nome}</td>
-          <td>${usuario.email}</td>
-          <td>${usuario.ativo ? 'Ativo' : 'Inativo'}</td>
-          <td>${usuario.nivel}</td>
-          <td>
-            <button class="btn-icon btn-edit" onclick="abrirModalEditar('${usuario.id}', '${usuario.nome}', '${usuario.email}')"><i class="bi bi-pencil"></i></button>
-            <button class="btn-icon btn-pass" onclick="abrirModalSenha('${usuario.id}')"><i class="bi bi-key"></i></button>
-            <button class="btn-icon btn-toggle" onclick="alternarStatus('${usuario.id}', ${usuario.ativo})"><i class="bi bi-shuffle"></i></button>
-            <button class="btn-icon btn-delete" onclick="excluirUsuario('${usuario.id}')"><i class="bi bi-trash"></i></button>
-          </td>
-        `;
-        corpoTabela.appendChild(linha);
-      });
-      document.getElementById('carregandoUsuarios').classList.add('d-none');
-      document.getElementById('tabelaUsuarios').classList.remove('d-none');
-    }
-    carregarUsuarios();
-  </script>
+    btn.disabled = false;
+    btn.textContent = 'Atualizar';
+  });
+
+  async function carregarUsuarios() {
+    const resposta = await fetch('https://supabase-user-api-painel.vercel.app/api/listar-usuarios');
+    const data = await resposta.json();
+    const corpoTabela = document.getElementById('corpoTabela');
+    corpoTabela.innerHTML = '';
+    data.forEach(usuario => {
+      const linha = document.createElement('tr');
+      linha.innerHTML = `
+        <td>${usuario.nome}</td>
+        <td>${usuario.email}</td>
+        <td>${usuario.ativo ? 'Ativo' : 'Inativo'}</td>
+        <td>${usuario.nivel}</td>
+        <td>
+          <button class="btn-icon btn-edit" onclick="abrirModalSenha('${usuario.id}')"><i class="bi bi-key"></i></button>
+          <button class="btn-icon btn-toggle" onclick="alternarStatus('${usuario.id}', ${usuario.ativo})"><i class="bi bi-shuffle"></i></button>
+          <button class="btn-icon btn-delete" onclick="excluirUsuario('${usuario.id}')"><i class="bi bi-trash"></i></button>
+        </td>
+      `;
+      corpoTabela.appendChild(linha);
+    });
+    document.getElementById('carregandoUsuarios').classList.add('d-none');
+    document.getElementById('tabelaUsuarios').classList.remove('d-none');
+  }
+  carregarUsuarios();
+});
+</script>
 </body>
 </html>
