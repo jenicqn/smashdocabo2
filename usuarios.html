@@ -52,7 +52,6 @@
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <div id="menuLateral"></div>
@@ -120,11 +119,6 @@
   </div>
 
   <script>
-    const supabase = window.supabase.createClient(
-      'https://kwktdbinfadztnkghuul.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
-    );
-
     const modalNovo = new bootstrap.Modal(document.getElementById('modalNovoUsuario'));
 
     function abrirModalNovoUsuario() {
@@ -147,30 +141,25 @@
       }
 
       try {
-        const { data, error } = await supabase.auth.admin.createUser({
-          email,
-          password: senha,
-          email_confirm: true
+        const resposta = await fetch('https://supabase-user-api-painel.vercel.app/api/criar-usuario', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ nome, email, senha, nivel })
         });
 
-        if (error) {
-          mostrarErro('Erro ao criar usuário: ' + error.message);
-          return;
-        }
+        const retorno = await resposta.json();
 
-        const userId = data.user.id;
-        const resExtra = await supabase.from('usuarios_painel').insert([{ id: userId, nome, email, nivel }]);
-
-        if (resExtra.error) {
-          mostrarErro('Usuário criado, mas falha ao salvar nível de acesso.');
-          return;
+        if (!resposta.ok) {
+          throw new Error(retorno.error || 'Erro ao criar usuário');
         }
 
         modalNovo.hide();
         alert('Usuário cadastrado com sucesso!');
         location.reload();
       } catch (err) {
-        mostrarErro('Erro inesperado. Tente novamente.');
+        mostrarErro(err.message);
       }
     });
 
@@ -181,12 +170,19 @@
     }
 
     async function carregarUsuarios() {
-      const { data, error } = await supabase.from('usuarios_painel').select('*');
+      const resposta = await fetch('https://kwktdbinfadztnkghuul.supabase.co/rest/v1/usuarios_painel?select=*', {
+        headers: {
+          apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
+        }
+      });
+
+      const data = await resposta.json();
       const tabela = document.getElementById('tabelaUsuarios');
       const corpo = document.getElementById('corpoTabela');
       document.getElementById('carregandoUsuarios').classList.add('d-none');
 
-      if (error || !data) {
+      if (!data || !Array.isArray(data)) {
         corpo.innerHTML = '<tr><td colspan="5">Erro ao carregar usuários</td></tr>';
         return;
       }
@@ -218,8 +214,15 @@
 
     async function excluirUsuario(id) {
       if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
-      const { error } = await supabase.from('usuarios_painel').delete().eq('id', id);
-      if (error) {
+      const resposta = await fetch(`https://kwktdbinfadztnkghuul.supabase.co/rest/v1/usuarios_painel?id=eq.${id}`, {
+        method: 'DELETE',
+        headers: {
+          apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
+        }
+      });
+
+      if (!resposta.ok) {
         alert('Erro ao excluir usuário.');
       } else {
         alert('Usuário excluído.');
