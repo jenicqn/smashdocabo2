@@ -177,14 +177,9 @@
     }
 
     async function carregarUsuarios() {
-      const resposta = await fetch('https://kwktdbinfadztnkghuul.supabase.co/rest/v1/usuarios_painel?select=*', {
-        headers: {
-          apikey: 'YOUR_PUBLIC_KEY_AQUI',
-          Authorization: 'Bearer YOUR_PUBLIC_KEY_AQUI'
-        }
-      });
-
+      const resposta = await fetch('https://supabase-user-api-painel.vercel.app/api/listar-usuarios');
       const data = await resposta.json();
+
       const tabela = document.getElementById('tabelaUsuarios');
       const corpo = document.getElementById('corpoTabela');
       document.getElementById('carregandoUsuarios').classList.add('d-none');
