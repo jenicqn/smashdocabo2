@@ -138,12 +138,14 @@
       const data = await res.json();
 
       if (!data.length || data[0].senha !== senha) {
-        erro.textContent = "Usuário ou senha inválidos";
-        return;
-      }
+  erro.textContent = "Usuário ou senha inválidos";
+  return;
+}
 
-      localStorage.setItem("usuario", JSON.stringify(data[0]));
-      window.location.href = "painel.html";
+localStorage.setItem("usuario", JSON.stringify(data[0]));
+localStorage.setItem("nivel", data[0].nivel); // <-- ESSA LINHA
+window.location.href = "painel.html";
+
     } catch (e) {
       erro.textContent = "Erro ao conectar com o servidor";
       console.error(e);
