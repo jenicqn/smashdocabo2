@@ -12,48 +12,26 @@
     body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; }
     .conteudo { flex: 1; padding: 40px; background-color: #f4f6fa; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-    .sidebar {
-      width: 220px; background-color: #0f172a; color: white;
-      display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh;
-    }
-    .sidebar h4 { padding: 20px; margin: 0; font-size: 20px; font-weight: bold; border-bottom: 1px solid #1e2a47; }
-    .sidebar a {
-      display: block; padding: 15px 20px; color: white; text-decoration: none;
-    }
-    .sidebar a:hover, .sidebar a.active { background-color: #1e2a47; }
-    .logout-btn {
-      background: #dc3545; color: white; border: none;
-      padding: 12px 20px; margin: 20px; border-radius: 4px; text-align: center; cursor: pointer;
-    }
     .btn-icon {
       border: none; margin: 0 3px; padding: 6px 8px; border-radius: 4px;
     }
     .btn-edit { background-color: #0d6efd; color: white; }
     .btn-pass { background-color: #198754; color: white; }
-    .btn-toggle { background-color: #6c757d; color: white; }
     .btn-delete { background-color: #dc3545; color: white; }
+    .btn-toggle { background-color: #6c757d; color: white; }
   </style>
 </head>
 <body>
-  <div class="sidebar">
-    <div>
-      <h4>Painel</h4>
-      <a href="painel.html">Início</a>
-      <a href="cupons.html" data-only="adm">Cupons</a>
-      <a href="clientes.html" data-only="adm">Clientes</a>
-      <a href="pesquisas.html">Pesquisas</a>
-      <a href="respostas.html">Respostas</a>
-      <a href="relatorios.html" data-only="adm">Relatórios</a>
-      <a href="usuarios.html" class="active" data-only="adm">Usuários</a>
-    </div>
-    <button class="logout-btn" onclick="logout()">Sair</button>
-  </div>
+  <!-- Sidebar do layout.html será carregada aqui -->
+  <div id="layout"></div>
 
+  <!-- CONTEÚDO PRINCIPAL -->
   <div class="conteudo">
     <div class="header">
       <h3>Lista de Usuários</h3>
       <button class="btn btn-primary" onclick="abrirModalNovoUsuario()">+ Novo Usuário</button>
     </div>
+
     <div id="carregandoUsuarios">Carregando usuários...</div>
     <table class="table table-bordered align-middle d-none" id="tabelaUsuarios">
       <thead class="table-light">
@@ -69,121 +47,20 @@
     </table>
   </div>
 
-  <!-- Modal de Senha -->
-  <div class="modal fade" id="modalSenha" tabindex="-1">
-    <div class="modal-dialog">
-      <form id="formSenha" class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Trocar Senha</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" id="senhaId">
-          <div class="mb-3">
-            <label class="form-label">Nova Senha</label>
-            <input type="password" class="form-control" id="novaSenha" required minlength="6">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Confirmar Senha</label>
-            <input type="password" class="form-control" id="confirmarSenha" required minlength="6">
-          </div>
-          <div id="alertSenha" class="alert d-none"></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-success">Atualizar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
 <script>
-window.addEventListener('DOMContentLoaded', () => {
-  const nivel = localStorage.getItem('nivel');
-  if (nivel !== 'adm') {
-    alert('Acesso restrito.');
-    window.location.href = 'respostas.html';
+  async function carregarLayout() {
+    const resp = await fetch('layout.html');
+    const html = await resp.text();
+    const layoutEl = document.createElement('div');
+    layoutEl.innerHTML = html;
+    const sidebar = layoutEl.querySelector('#sidebar');
+    if (sidebar) document.getElementById('layout').appendChild(sidebar);
   }
-  document.querySelectorAll('[data-only="adm"]').forEach(el => el.style.display = 'none');
+  carregarLayout();
 
-  window.logout = () => {
-    localStorage.clear();
-    window.location.href = 'index.html';
+  function abrirModalNovoUsuario() {
+    alert('Função de novo usuário ainda não implementada nesta página.');
   }
-
-  window.abrirModalNovoUsuario = () => {
-    window.location.href = 'usuarios.html#novo';
-  }
-
-  window.abrirModalSenha = (id) => {
-    document.getElementById('senhaId').value = id;
-    document.getElementById('novaSenha').value = '';
-    document.getElementById('confirmarSenha').value = '';
-    document.getElementById('alertSenha').classList.add('d-none');
-    new bootstrap.Modal(document.getElementById('modalSenha')).show();
-  }
-
-  window.excluirUsuario = async (id) => {
-    if (!confirm('Deseja realmente excluir este usuário?')) return;
-    await fetch(`https://supabase-user-api-painel.vercel.app/api/excluir-usuario?id=${id}`, { method: 'DELETE' });
-    carregarUsuarios();
-  }
-
-  window.alternarStatus = async (id, statusAtual) => {
-    const novoStatus = !statusAtual;
-    await fetch('https://supabase-user-api-painel.vercel.app/api/atualizar-status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, ativo: novoStatus })
-    });
-    carregarUsuarios();
-  }
-
-  document.getElementById('formSenha').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const id = document.getElementById('senhaId').value;
-    const senha = document.getElementById('novaSenha').value;
-    const confirmar = document.getElementById('confirmarSenha').value;
-    const msg = document.getElementById('alertSenha');
-    const btn = this.querySelector('button[type=submit]');
-    msg.classList.add('d-none');
-    btn.disabled = true;
-    btn.textContent = 'Atualizando...';
-
-    if (senha !== confirmar) {
-      msg.classList.remove('d-none', 'alert-success');
-      msg.classList.add('alert-danger');
-      msg.textContent = 'As senhas não coincidem.';
-      btn.disabled = false;
-      btn.textContent = 'Atualizar';
-      return;
-    }
-
-    try {
-      const res = await fetch('https://supabase-user-api-painel.vercel.app/api/atualizar-senha', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, senha })
-      });
-      if (res.ok) {
-        msg.classList.remove('d-none', 'alert-danger');
-        msg.classList.add('alert-success');
-        msg.textContent = 'Senha atualizada com sucesso!';
-        setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('modalSenha')).hide(), 1000);
-      } else {
-        const data = await res.json();
-        msg.classList.remove('d-none', 'alert-success');
-        msg.classList.add('alert-danger');
-        msg.textContent = data.error || 'Erro ao atualizar senha.';
-      }
-    } catch {
-      msg.classList.remove('d-none', 'alert-success');
-      msg.classList.add('alert-danger');
-      msg.textContent = 'Erro de rede. Verifique sua conexão.';
-    }
-    btn.disabled = false;
-    btn.textContent = 'Atualizar';
-  });
 
   async function carregarUsuarios() {
     const resposta = await fetch('https://supabase-user-api-painel.vercel.app/api/listar-usuarios');
@@ -198,9 +75,10 @@ window.addEventListener('DOMContentLoaded', () => {
         <td>${usuario.ativo ? 'Ativo' : 'Inativo'}</td>
         <td>${usuario.nivel}</td>
         <td>
-          <button class="btn-icon btn-edit" onclick="abrirModalSenha('${usuario.id}')"><i class="bi bi-key"></i></button>
-          <button class="btn-icon btn-toggle" onclick="alternarStatus('${usuario.id}', ${usuario.ativo})"><i class="bi bi-shuffle"></i></button>
-          <button class="btn-icon btn-delete" onclick="excluirUsuario('${usuario.id}')"><i class="bi bi-trash"></i></button>
+          <button class="btn-icon btn-edit"><i class="bi bi-pencil"></i></button>
+          <button class="btn-icon btn-pass"><i class="bi bi-key"></i></button>
+          <button class="btn-icon btn-toggle"><i class="bi bi-shuffle"></i></button>
+          <button class="btn-icon btn-delete"><i class="bi bi-trash"></i></button>
         </td>
       `;
       corpoTabela.appendChild(linha);
@@ -208,8 +86,8 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('carregandoUsuarios').classList.add('d-none');
     document.getElementById('tabelaUsuarios').classList.remove('d-none');
   }
+
   carregarUsuarios();
-});
 </script>
 </body>
 </html>
