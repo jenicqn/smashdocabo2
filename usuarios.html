@@ -206,7 +206,7 @@
 
     const { access_token } = JSON.parse(localStorage.getItem('usuario')) || {};
 
-    const resposta = await fetch(`https://kwktdbinfadztnkghuul.supabase.co/rest/v1/usuarios_painel?id=eq.${id}`, {
+    const resposta = await fetch(`https://kwktdbinfadztnkghuul.supabase.co/rest/v1/usuarios_painel2?id=eq.${id}`, {
       method: 'DELETE',
       headers: {
         apikey: 'YOUR_PUBLIC_KEY_AQUI',
