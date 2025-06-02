@@ -113,6 +113,45 @@
   </table>
 </div>
 
+<!-- Modal Novo Usuário -->
+<div class="modal fade" id="modalNovoUsuario" tabindex="-1" aria-labelledby="tituloModalNovoUsuario" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="formNovoUsuario" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="tituloModalNovoUsuario">Novo Usuário</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="nome" class="form-label">Nome</label>
+          <input type="text" class="form-control" id="nome" required>
+        </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">E-mail</label>
+          <input type="email" class="form-control" id="email" required>
+        </div>
+        <div class="mb-3">
+          <label for="nivel" class="form-label">Nível de Acesso</label>
+          <select class="form-select" id="nivel" required>
+            <option value="adm">Administrador</option>
+            <option value="user">Funcionário</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="senha" class="form-label">Senha</label>
+          <input type="password" class="form-control" id="senha" minlength="6" required>
+        </div>
+        <div id="mensagemErro" class="text-danger small d-none"></div>
+        <div id="mensagemSucesso" class="text-success small d-none"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-success">Criar Usuário</button>
+      </div>
+    </form>
+  </div>
+</div>
+  
 <!-- SCRIPT DE ACESSO E MENU -->
 <script>
   const nivel = localStorage.getItem('nivel');
