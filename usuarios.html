@@ -32,6 +32,9 @@
     .btn-password {
       background-color: #198754;
     }
+    .btn-delete {
+      background-color: #dc3545;
+    }
     .header {
       display: flex;
       justify-content: space-between;
@@ -61,34 +64,18 @@
       <button class="logout-btn" onclick="logout()">Sair</button>
     </div>
 
-    <table class="table table-bordered align-middle">
+    <div id="carregandoUsuarios">Carregando usuários...</div>
+    <table class="table table-bordered align-middle d-none" id="tabelaUsuarios">
       <thead class="table-light">
         <tr>
           <th>Nome</th>
           <th>Email</th>
-          <th>Cadastro</th>
           <th>Status</th>
           <th>Nível</th>
           <th>Ações</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td>Jeniffer Adm</td>
-          <td>cinquine@gmail.com</td>
-          <td>Completo</td>
-          <td>Ativo</td>
-          <td>Dono de empresa</td>
-          <td>
-            <button class="btn-icon btn-edit me-2" title="Editar usuário" onclick="window.location.href='editar-usuario.html'">
-              <i class="bi bi-pencil"></i>
-            </button>
-            <button class="btn-icon btn-password" title="Trocar senha" onclick="window.location.href='trocar-senha.html'">
-              <i class="bi bi-key"></i>
-            </button>
-          </td>
-        </tr>
-      </tbody>
+      <tbody id="corpoTabela"></tbody>
     </table>
   </div>
 
@@ -167,19 +154,14 @@
         });
 
         if (error) {
-          console.error(error);
           mostrarErro('Erro ao criar usuário: ' + error.message);
           return;
         }
 
         const userId = data.user.id;
-
-        const resExtra = await supabase
-          .from('usuarios_painel')
-          .insert([{ id: userId, nome, email, nivel }]);
+        const resExtra = await supabase.from('usuarios_painel').insert([{ id: userId, nome, email, nivel }]);
 
         if (resExtra.error) {
-          console.error(resExtra.error);
           mostrarErro('Usuário criado, mas falha ao salvar nível de acesso.');
           return;
         }
@@ -188,7 +170,6 @@
         alert('Usuário cadastrado com sucesso!');
         location.reload();
       } catch (err) {
-        console.error(err);
         mostrarErro('Erro inesperado. Tente novamente.');
       }
     });
@@ -197,6 +178,53 @@
       const erro = document.getElementById('msgErro');
       erro.textContent = msg;
       erro.classList.remove('d-none');
+    }
+
+    async function carregarUsuarios() {
+      const { data, error } = await supabase.from('usuarios_painel').select('*');
+      const tabela = document.getElementById('tabelaUsuarios');
+      const corpo = document.getElementById('corpoTabela');
+      document.getElementById('carregandoUsuarios').classList.add('d-none');
+
+      if (error || !data) {
+        corpo.innerHTML = '<tr><td colspan="5">Erro ao carregar usuários</td></tr>';
+        return;
+      }
+
+      tabela.classList.remove('d-none');
+      corpo.innerHTML = '';
+      data.forEach(usuario => {
+        corpo.innerHTML += `
+          <tr>
+            <td>${usuario.nome}</td>
+            <td>${usuario.email}</td>
+            <td>Ativo</td>
+            <td>${usuario.nivel}</td>
+            <td>
+              <button class="btn-icon btn-edit me-1" title="Editar" onclick="window.location.href='editar-usuario.html?id=${usuario.id}'">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn-icon btn-password me-1" title="Senha" onclick="window.location.href='trocar-senha.html?id=${usuario.id}'">
+                <i class="bi bi-key"></i>
+              </button>
+              <button class="btn-icon btn-delete" title="Excluir" onclick="excluirUsuario('${usuario.id}')">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function excluirUsuario(id) {
+      if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
+      const { error } = await supabase.from('usuarios_painel').delete().eq('id', id);
+      if (error) {
+        alert('Erro ao excluir usuário.');
+      } else {
+        alert('Usuário excluído.');
+        location.reload();
+      }
     }
 
     function logout() {
@@ -209,6 +237,8 @@
       .then(html => {
         document.getElementById('menuLateral').innerHTML = html;
       });
+
+    carregarUsuarios();
   </script>
 </body>
 </html>
