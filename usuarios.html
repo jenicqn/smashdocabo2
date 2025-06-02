@@ -7,76 +7,58 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+    window.supabase = createClient(
+      'https://kwktdbinfadztnkghuul.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
+    );
+    window.carregarUsuarios = async function () {
+      const resposta = await fetch('/api/listar-usuarios');
+      const data = await resposta.json();
+      const corpoTabela = document.getElementById('corpoTabela');
+      corpoTabela.innerHTML = '';
+      data.forEach(usuario => {
+        const linha = document.createElement('tr');
+        linha.innerHTML = `
+          <td>${usuario.nome}</td>
+          <td>${usuario.email}</td>
+          <td>${usuario.ativo ? 'Ativo' : 'Inativo'}</td>
+          <td>${usuario.nivel}</td>
+          <td>
+            <button class="btn btn-sm btn-primary"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-success"><i class="bi bi-key"></i></button>
+          </td>
+        `;
+        corpoTabela.appendChild(linha);
+      });
+      document.getElementById('carregandoUsuarios').classList.add('d-none');
+      document.getElementById('tabelaUsuarios').classList.remove('d-none');
+    };
+    carregarUsuarios();
+  </script>
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-    }
-    .conteudo {
-      flex: 1;
-      padding: 40px;
-      background-color: #f4f6fa;
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-    }
-    .btn-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      color: #fff;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .btn-edit { background-color: #0d6efd; }
-    .btn-password { background-color: #198754; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; }
+    .conteudo { flex: 1; padding: 40px; background-color: #f4f6fa; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
     .sidebar {
-      width: 220px;
-      background-color: #0f172a;
-      color: white;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      width: 220px; background-color: #0f172a; color: white;
+      display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh;
     }
-    .sidebar h4 {
-      padding: 20px;
-      margin: 0;
-      font-size: 20px;
-      font-weight: bold;
-      border-bottom: 1px solid #1e2a47;
-    }
+    .sidebar h4 { padding: 20px; margin: 0; font-size: 20px; font-weight: bold; border-bottom: 1px solid #1e2a47; }
     .sidebar a {
-      display: block;
-      padding: 15px 20px;
-      color: white;
-      text-decoration: none;
+      display: block; padding: 15px 20px; color: white; text-decoration: none;
     }
-    .sidebar a:hover,
-    .sidebar a.active {
-      background-color: #1e2a47;
-    }
+    .sidebar a:hover, .sidebar a.active { background-color: #1e2a47; }
     .logout-btn {
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      margin: 20px;
-      border-radius: 4px;
-      text-align: center;
-      cursor: pointer;
+      background: #dc3545; color: white; border: none;
+      padding: 12px 20px; margin: 20px; border-radius: 4px; text-align: center; cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
+<!-- MENU LATERAL -->
 <div class="sidebar">
   <div>
     <h4>Painel</h4>
@@ -86,7 +68,7 @@
     <a href="pesquisas.html">Pesquisas</a>
     <a href="respostas.html">Respostas</a>
     <a href="relatorios.html" data-only="adm">Relatórios</a>
-    <a href="usuarios.html" data-only="adm" class="active">Usuários</a>
+    <a href="usuarios.html" class="active" data-only="adm">Usuários</a>
   </div>
   <button class="logout-btn" onclick="logout()">Sair</button>
 </div>
@@ -113,46 +95,37 @@
   </table>
 </div>
 
-<!-- Modal Novo Usuário -->
+<!-- MODAL NOVO USUÁRIO -->
 <div class="modal fade" id="modalNovoUsuario" tabindex="-1" aria-labelledby="tituloModalNovoUsuario" aria-hidden="true">
   <div class="modal-dialog">
     <form id="formNovoUsuario" class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="tituloModalNovoUsuario">Novo Usuário</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
+        <div class="mb-3"><label class="form-label">Nome</label><input type="text" class="form-control" id="nome" required></div>
+        <div class="mb-3"><label class="form-label">E-mail</label><input type="email" class="form-control" id="email" required></div>
         <div class="mb-3">
-          <label for="nome" class="form-label">Nome</label>
-          <input type="text" class="form-control" id="nome" required>
-        </div>
-        <div class="mb-3">
-          <label for="email" class="form-label">E-mail</label>
-          <input type="email" class="form-control" id="email" required>
-        </div>
-        <div class="mb-3">
-          <label for="nivel" class="form-label">Nível de Acesso</label>
+          <label class="form-label">Nível</label>
           <select class="form-select" id="nivel" required>
             <option value="adm">Administrador</option>
             <option value="user">Funcionário</option>
           </select>
         </div>
-        <div class="mb-3">
-          <label for="senha" class="form-label">Senha</label>
-          <input type="password" class="form-control" id="senha" minlength="6" required>
-        </div>
+        <div class="mb-3"><label class="form-label">Senha</label><input type="password" class="form-control" id="senha" required minlength="6"></div>
         <div id="mensagemErro" class="text-danger small d-none"></div>
         <div id="mensagemSucesso" class="text-success small d-none"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="submit" class="btn btn-success">Criar Usuário</button>
+        <button type="submit" class="btn btn-success">Salvar</button>
       </div>
     </form>
   </div>
 </div>
-  
-<!-- SCRIPT DE ACESSO E MENU -->
+
+<!-- SCRIPTS -->
 <script>
   const nivel = localStorage.getItem('nivel');
   if (nivel !== 'adm') {
@@ -168,51 +141,49 @@
     localStorage.clear();
     window.location.href = 'index.html';
   }
-</script>
 
-<!-- SUPABASE + USUÁRIOS -->
-<script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
-  const supabase = createClient(
-    'https://kwktdbinfadztnkghuul.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
-  );
-
-  async function carregarUsuarios() {
-    const { data, error } = await supabase
-      .from('usuarios_painel2')
-      .select('*');
-
-    if (error) {
-      document.getElementById('carregandoUsuarios').innerText = 'Erro ao carregar usuários.';
-      return;
-    }
-
-    const corpoTabela = document.getElementById('corpoTabela');
-    corpoTabela.innerHTML = '';
-    data.forEach(usuario => {
-      const linha = document.createElement('tr');
-      linha.innerHTML = `
-        <td>${usuario.nome}</td>
-        <td>${usuario.email}</td>
-        <td>${usuario.ativo ? 'Ativo' : 'Inativo'}</td>
-        <td>${usuario.nivel}</td>
-        <td>
-          <button class="btn-icon btn-edit" onclick="editarUsuario('${usuario.id}')"><i class="bi bi-pencil"></i></button>
-          <button class="btn-icon btn-password" onclick="abrirModalTrocarSenha('${usuario.id}')"><i class="bi bi-key"></i></button>
-        </td>
-      `;
-      corpoTabela.appendChild(linha);
-    });
-
-    document.getElementById('carregandoUsuarios').classList.add('d-none');
-    document.getElementById('tabelaUsuarios').classList.remove('d-none');
+  function abrirModalNovoUsuario() {
+    const modal = new bootstrap.Modal(document.getElementById('modalNovoUsuario'));
+    modal.show();
   }
 
-  carregarUsuarios();
-</script>
+  document.getElementById('formNovoUsuario').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const nome = document.getElementById('nome').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const nivel = document.getElementById('nivel').value;
+    const senha = document.getElementById('senha').value;
 
+    const msgErro = document.getElementById('mensagemErro');
+    const msgOk = document.getElementById('mensagemSucesso');
+    msgErro.classList.add('d-none');
+    msgOk.classList.add('d-none');
+
+    try {
+      const resposta = await fetch('/api/criar-usuario', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, email, senha, nivel })
+      });
+
+      const retorno = await resposta.json();
+
+      if (!resposta.ok) {
+        msgErro.textContent = retorno.error || 'Erro ao criar usuário.';
+        msgErro.classList.remove('d-none');
+        return;
+      }
+
+      msgOk.textContent = 'Usuário criado com sucesso!';
+      msgOk.classList.remove('d-none');
+      document.getElementById('formNovoUsuario').reset();
+      window.carregarUsuarios();
+    } catch (err) {
+      msgErro.textContent = 'Erro de conexão com o servidor.';
+      msgErro.classList.remove('d-none');
+    }
+  });
+</script>
 
 </body>
 </html>
