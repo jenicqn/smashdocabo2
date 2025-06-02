@@ -1,1 +1,155 @@
-<html><body>...seu HTML atualizado aqui...</body></html>
+<!DOCTYPE html>Add commentMore actions
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usuários</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f6fa;
+      margin: 0;
+      display: flex;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .content {
+      flex: 1;
+      padding: 40px;
+    }
+    .btn-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-edit { background-color: #0d6efd; }
+    .btn-password { background-color: #198754; }
+    .btn-delete { background-color: #dc3545; }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      gap: 12px;
+    }
+    .logout-btn {
+      background-color: #dc3545;
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+<script>
+  if (localStorage.getItem('nivel') !== 'adm') {
+    alert('Acesso restrito. Você será redirecionado.');
+    window.location.href = 'respostas.html';
+  }
+</script>
+
+<div id="menuLateral"></div>
+<div class="content">
+  <div class="header">
+    <h3>Lista de Usuários</h3>
+    <button class="btn btn-primary" onclick="abrirModalNovoUsuario()">+ Novo Usuário</button>
+    <button class="logout-btn" onclick="logout()">Sair</button>
+  </div>
+
+  <div id="carregandoUsuarios">Carregando usuários...</div>
+  <table class="table table-bordered align-middle d-none" id="tabelaUsuarios">
+    <thead class="table-light">
+      <tr>
+        <th>Nome</th>
+        <th>Email</th>
+        <th>Status</th>
+        <th>Nível</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="corpoTabela"></tbody>
+  </table>
+</div>
+
+<div class="modal fade" id="modalNovoUsuario" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="formNovoUsuario">
+        <div class="modal-header">
+          <h5 class="modal-title">Novo Usuário</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Nome</label>
+            <input type="text" class="form-control" id="novoNome" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">E-mail</label>
+            <input type="email" class="form-control" id="novoEmail" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Nível</label>
+            <select class="form-select" id="novoNivel" required>
+              <option value="adm">Administrador</option>
+              <option value="user">Funcionário</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Senha</label>
+            <input type="password" class="form-control" id="novaSenha" required minlength="6">
+          </div>
+          <div id="msgErro" class="text-danger small d-none"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Trocar Senha -->
+<div class="modal fade" id="modalTrocarSenha" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="formTrocarSenha">
+        <div class="modal-header">
+          <h5 class="modal-title">Trocar Senha</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="idTrocaSenha">
+          <div class="mb-3">
+            <label class="form-label">Nova Senha</label>
+            <input type="password" class="form-control" id="novaSenhaModal" required minlength="6">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Confirmar Nova Senha</label>
+            <input type="password" class="form-control" id="confirmarSenhaModal" required minlength="6">
+          </div>
+          <div id="erroTroca" class="text-danger small d-none"></div>
+          <div id="sucessoTroca" class="text-success small d-none"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Atualizar Senha</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // scripts existentes permanecem aqui
+</script>
+</body>
+</html>
