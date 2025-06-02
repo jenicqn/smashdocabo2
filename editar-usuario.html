@@ -21,8 +21,8 @@
       <div class="mb-3">
         <label for="nivel" class="form-label">Nível de Acesso</label>
         <select class="form-select" id="nivel" required>
-          <option value="admin">Administrador</option>
-          <option value="funcionario">Funcionário</option>
+          <option value="adm">Administrador</option>
+          <option value="user">Funcionário</option>
         </select>
       </div>
       <div class="alert alert-danger d-none" id="erro"></div>
@@ -34,21 +34,46 @@
 
   <script>
     const SUPABASE_URL = 'https://kwktdbinfadztnkghuul.supabase.co';
-    const SUPABASE_KEY = 'SUA_CHAVE_AQUI';
+    const accessToken = JSON.parse(localStorage.getItem('usuario'))?.access_token;
 
-    const usuarioId = localStorage.getItem('usuario_edicao_id');
+    const urlParams = new URLSearchParams(window.location.search);
+    const usuarioId = urlParams.get('id');
+
+    const erro = document.getElementById('erro');
+    const sucesso = document.getElementById('sucesso');
+
+    if (!usuarioId || !accessToken) {
+      erro.textContent = 'Erro de autenticação. Faça login novamente.';
+      erro.classList.remove('d-none');
+      document.getElementById('formEditar').style.display = 'none';
+    } else {
+      carregarDados();
+    }
+
+    async function carregarDados() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/usuarios_painel?id=eq.${usuarioId}&select=*`, {
+        headers: {
+          apikey: accessToken,
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+
+      const dados = await res.json();
+      if (dados.length) {
+        document.getElementById('nome').value = dados[0].nome;
+        document.getElementById('email').value = dados[0].email;
+        document.getElementById('nivel').value = dados[0].nivel;
+      }
+    }
 
     document.getElementById('formEditar').addEventListener('submit', async function (e) {
       e.preventDefault();
+      erro.classList.add('d-none');
+      sucesso.classList.add('d-none');
 
       const nome = document.getElementById('nome').value.trim();
       const email = document.getElementById('email').value.trim();
       const nivel = document.getElementById('nivel').value;
-
-      const erro = document.getElementById('erro');
-      const sucesso = document.getElementById('sucesso');
-      erro.classList.add('d-none');
-      sucesso.classList.add('d-none');
 
       if (!nome || !email || !nivel) {
         erro.textContent = 'Preencha todos os campos.';
@@ -59,10 +84,10 @@
       const res = await fetch(`${SUPABASE_URL}/rest/v1/usuarios_painel?id=eq.${usuarioId}`, {
         method: 'PATCH',
         headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          apikey: accessToken,
+          Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
-          'Prefer': 'return=representation'
+          Prefer: 'return=representation'
         },
         body: JSON.stringify({ nome, email, nivel })
       });
