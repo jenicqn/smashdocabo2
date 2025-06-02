@@ -26,15 +26,9 @@
       align-items: center;
       justify-content: center;
     }
-    .btn-edit {
-      background-color: #0d6efd;
-    }
-    .btn-password {
-      background-color: #198754;
-    }
-    .btn-delete {
-      background-color: #dc3545;
-    }
+    .btn-edit { background-color: #0d6efd; }
+    .btn-password { background-color: #198754; }
+    .btn-delete { background-color: #dc3545; }
     .header {
       display: flex;
       justify-content: space-between;
@@ -54,197 +48,194 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-  <script>
-    if (localStorage.getItem('nivel') !== 'adm') {
-      alert('Acesso restrito. Você será redirecionado.');
-      window.location.href = 'respostas.html';
-    }
-  </script>
+<script>
+  if (localStorage.getItem('nivel') !== 'adm') {
+    alert('Acesso restrito. Você será redirecionado.');
+    window.location.href = 'respostas.html';
+  }
+</script>
 
-  <div id="menuLateral"></div>
+<div id="menuLateral"></div>
+<div class="content">
+  <div class="header">
+    <h3>Lista de Usuários</h3>
+    <button class="btn btn-primary" onclick="abrirModalNovoUsuario()">+ Novo Usuário</button>
+    <button class="logout-btn" onclick="logout()">Sair</button>
+  </div>
 
-  <div class="content">
-    <div class="header">
-      <h3>Lista de Usuários</h3>
-      <button class="btn btn-primary" onclick="abrirModalNovoUsuario()">+ Novo Usuário</button>
-      <button class="logout-btn" onclick="logout()">Sair</button>
+  <div id="carregandoUsuarios">Carregando usuários...</div>
+  <table class="table table-bordered align-middle d-none" id="tabelaUsuarios">
+    <thead class="table-light">
+      <tr>
+        <th>Nome</th>
+        <th>Email</th>
+        <th>Status</th>
+        <th>Nível</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="corpoTabela"></tbody>
+  </table>
+</div>
+
+<div class="modal fade" id="modalNovoUsuario" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="formNovoUsuario">
+        <div class="modal-header">
+          <h5 class="modal-title">Novo Usuário</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Nome</label>
+            <input type="text" class="form-control" id="novoNome" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">E-mail</label>
+            <input type="email" class="form-control" id="novoEmail" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Nível</label>
+            <select class="form-select" id="novoNivel" required>
+              <option value="adm">Administrador</option>
+              <option value="user">Funcionário</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Senha</label>
+            <input type="password" class="form-control" id="novaSenha" required minlength="6">
+          </div>
+          <div id="msgErro" class="text-danger small d-none"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Salvar</button>
+        </div>
+      </form>
     </div>
+  </div>
+</div>
 
-    <div id="carregandoUsuarios">Carregando usuários...</div>
-    <table class="table table-bordered align-middle d-none" id="tabelaUsuarios">
-      <thead class="table-light">
+<script>
+  const modalNovo = new bootstrap.Modal(document.getElementById('modalNovoUsuario'));
+
+  function abrirModalNovoUsuario() {
+    document.getElementById('formNovoUsuario').reset();
+    document.getElementById('msgErro').classList.add('d-none');
+    modalNovo.show();
+  }
+
+  document.getElementById('formNovoUsuario').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const nome = document.getElementById('novoNome').value.trim();
+    const email = document.getElementById('novoEmail').value.trim();
+    const nivel = document.getElementById('novoNivel').value;
+    const senha = document.getElementById('novaSenha').value;
+
+    if (!nome || !email || !nivel || senha.length < 6) {
+      mostrarErro('Preencha todos os campos corretamente.');
+      return;
+    }
+
+    try {
+      const resposta = await fetch('https://supabase-user-api-painel.vercel.app/api/criar-usuario', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, email, senha, nivel })
+      });
+
+      const retorno = await resposta.json();
+      if (!resposta.ok) throw new Error(retorno.error || 'Erro ao criar usuário');
+
+      modalNovo.hide();
+      alert('Usuário cadastrado com sucesso!');
+      location.reload();
+    } catch (err) {
+      mostrarErro(err.message);
+    }
+  });
+
+  function mostrarErro(msg) {
+    const erro = document.getElementById('msgErro');
+    erro.textContent = msg;
+    erro.classList.remove('d-none');
+  }
+
+  async function carregarUsuarios() {
+    const resposta = await fetch('https://supabase-user-api-painel.vercel.app/api/listar-usuarios');
+    const data = await resposta.json();
+
+    const tabela = document.getElementById('tabelaUsuarios');
+    const corpo = document.getElementById('corpoTabela');
+    document.getElementById('carregandoUsuarios').classList.add('d-none');
+
+    if (!data || !Array.isArray(data)) {
+      corpo.innerHTML = '<tr><td colspan="5">Erro ao carregar usuários</td></tr>';
+      return;
+    }
+
+    tabela.classList.remove('d-none');
+    corpo.innerHTML = '';
+    data.forEach(usuario => {
+      corpo.innerHTML += `
         <tr>
-          <th>Nome</th>
-          <th>Email</th>
-          <th>Status</th>
-          <th>Nível</th>
-          <th>Ações</th>
+          <td>${usuario.nome}</td>
+          <td>${usuario.email}</td>
+          <td>Ativo</td>
+          <td>${usuario.nivel}</td>
+          <td>
+            <button class="btn-icon btn-edit me-1" title="Editar" onclick="window.location.href='editar-usuario.html?id=${usuario.id}'">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn-icon btn-password me-1" title="Senha" onclick="window.location.href='trocar-senha.html?id=${usuario.id}'">
+              <i class="bi bi-key"></i>
+            </button>
+            <button class="btn-icon btn-delete" title="Excluir" onclick="excluirUsuario('${usuario.id}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
         </tr>
-      </thead>
-      <tbody id="corpoTabela"></tbody>
-    </table>
-  </div>
+      `;
+    });
+  }
 
-  <!-- Modal Novo Usuário -->
-  <div class="modal fade" id="modalNovoUsuario" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <form id="formNovoUsuario">
-          <div class="modal-header">
-            <h5 class="modal-title">Novo Usuário</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label class="form-label">Nome</label>
-              <input type="text" class="form-control" id="novoNome" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">E-mail</label>
-              <input type="email" class="form-control" id="novoEmail" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Nível</label>
-              <select class="form-select" id="novoNivel" required>
-                <option value="adm">Administrador</option>
-                <option value="user">Funcionário</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Senha</label>
-              <input type="password" class="form-control" id="novaSenha" required minlength="6">
-            </div>
-            <div id="msgErro" class="text-danger small d-none"></div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-success">Salvar</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
+  async function excluirUsuario(id) {
+    if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
 
-  <script>
-    const modalNovo = new bootstrap.Modal(document.getElementById('modalNovoUsuario'));
+    const { access_token } = JSON.parse(localStorage.getItem('usuario')) || {};
 
-    function abrirModalNovoUsuario() {
-      document.getElementById('formNovoUsuario').reset();
-      document.getElementById('msgErro').classList.add('d-none');
-      modalNovo.show();
-    }
-
-    document.getElementById('formNovoUsuario').addEventListener('submit', async function (e) {
-      e.preventDefault();
-
-      const nome = document.getElementById('novoNome').value.trim();
-      const email = document.getElementById('novoEmail').value.trim();
-      const nivel = document.getElementById('novoNivel').value;
-      const senha = document.getElementById('novaSenha').value;
-
-      if (!nome || !email || !nivel || senha.length < 6) {
-        mostrarErro('Preencha todos os campos corretamente.');
-        return;
-      }
-
-      try {
-        const resposta = await fetch('https://supabase-user-api-painel.vercel.app/api/criar-usuario', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ nome, email, senha, nivel })
-        });
-
-        const retorno = await resposta.json();
-
-        if (!resposta.ok) {
-          throw new Error(retorno.error || 'Erro ao criar usuário');
-        }
-
-        modalNovo.hide();
-        alert('Usuário cadastrado com sucesso!');
-        location.reload();
-      } catch (err) {
-        mostrarErro(err.message);
+    const resposta = await fetch(`https://kwktdbinfadztnkghuul.supabase.co/rest/v1/usuarios_painel?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: {
+        apikey: 'YOUR_PUBLIC_KEY_AQUI',
+        Authorization: `Bearer ${access_token}`
       }
     });
 
-    function mostrarErro(msg) {
-      const erro = document.getElementById('msgErro');
-      erro.textContent = msg;
-      erro.classList.remove('d-none');
+    if (!resposta.ok) {
+      alert('Erro ao excluir usuário.');
+    } else {
+      alert('Usuário excluído.');
+      location.reload();
     }
+  }
 
-    async function carregarUsuarios() {
-      const resposta = await fetch('https://supabase-user-api-painel.vercel.app/api/listar-usuarios');
-      const data = await resposta.json();
+  function logout() {
+    localStorage.removeItem('usuarioLogado');
+    localStorage.removeItem('nivel');
+    localStorage.removeItem('usuario');
+    window.location.href = 'index.html';
+  }
 
-      const tabela = document.getElementById('tabelaUsuarios');
-      const corpo = document.getElementById('corpoTabela');
-      document.getElementById('carregandoUsuarios').classList.add('d-none');
+  fetch('layout.html')
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById('menuLateral').innerHTML = html;
+    });
 
-      if (!data || !Array.isArray(data)) {
-        corpo.innerHTML = '<tr><td colspan="5">Erro ao carregar usuários</td></tr>';
-        return;
-      }
-
-      tabela.classList.remove('d-none');
-      corpo.innerHTML = '';
-      data.forEach(usuario => {
-        corpo.innerHTML += `
-          <tr>
-            <td>${usuario.nome}</td>
-            <td>${usuario.email}</td>
-            <td>Ativo</td>
-            <td>${usuario.nivel}</td>
-            <td>
-              <button class="btn-icon btn-edit me-1" title="Editar" onclick="window.location.href='editar-usuario.html?id=${usuario.id}'">
-                <i class="bi bi-pencil"></i>
-              </button>
-              <button class="btn-icon btn-password me-1" title="Senha" onclick="window.location.href='trocar-senha.html?id=${usuario.id}'">
-                <i class="bi bi-key"></i>
-              </button>
-              <button class="btn-icon btn-delete" title="Excluir" onclick="excluirUsuario('${usuario.id}')">
-                <i class="bi bi-trash"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      });
-    }
-
-    async function excluirUsuario(id) {
-      if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
-      const resposta = await fetch(`https://kwktdbinfadztnkghuul.supabase.co/rest/v1/usuarios_painel?id=eq.${id}`, {
-        method: 'DELETE',
-        headers: {
-          apikey: 'YOUR_PUBLIC_KEY_AQUI',
-          Authorization: 'Bearer YOUR_PUBLIC_KEY_AQUI'
-        }
-      });
-
-      if (!resposta.ok) {
-        alert('Erro ao excluir usuário.');
-      } else {
-        alert('Usuário excluído.');
-        location.reload();
-      }
-    }
-
-    function logout() {
-      localStorage.removeItem('usuarioLogado');
-      localStorage.removeItem('nivel');
-      window.location.href = 'index.html';
-    }
-
-    fetch('layout.html')
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('menuLateral').innerHTML = html;
-      });
-
-    carregarUsuarios();
-  </script>
+  carregarUsuarios();
+</script>
 </body>
 </html>
