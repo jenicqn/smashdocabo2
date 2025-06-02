@@ -132,8 +132,10 @@
 </script>
 
 <!-- SUPABASE + USUÁRIOS -->
-<script>
-  const supabase = supabase.createClient(
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+  const supabase = createClient(
     'https://kwktdbinfadztnkghuul.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
   );
@@ -171,6 +173,7 @@
 
   carregarUsuarios();
 </script>
+
 
 </body>
 </html>
