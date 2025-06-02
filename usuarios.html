@@ -73,7 +73,61 @@
 </div>
 
 <!-- MODAIS -->
-<div id="modais"></div>
+<div id="modais">
+  <!-- Modal de edição -->
+  <div class="modal fade" id="modalEditarUsuario" tabindex="-1">
+    <div class="modal-dialog">
+      <form id="formEditarUsuario" class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Editar Usuário</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editarId">
+          <div class="mb-3">
+            <label class="form-label">Nome</label>
+            <input type="text" class="form-control" id="editarNome" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" id="editarEmail" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de senha -->
+  <div class="modal fade" id="modalSenha" tabindex="-1">
+    <div class="modal-dialog">
+      <form id="formSenha" class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Trocar Senha</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="senhaId">
+          <div class="mb-3">
+            <label class="form-label">Nova Senha</label>
+            <input type="password" class="form-control" id="novaSenha" required minlength="6">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Confirmar Senha</label>
+            <input type="password" class="form-control" id="confirmarSenha" required minlength="6">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Atualizar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <!-- SCRIPTS -->
 <script>
@@ -93,10 +147,69 @@
   }
 
   function abrirModalNovoUsuario() {
-    // Função que abrirá o modal já existente
-    const modal = new bootstrap.Modal(document.getElementById('modalNovoUsuario'));
-    modal.show();
+    window.location.href = 'usuarios.html#novo';
   }
+
+  function abrirModalEditar(id, nome, email) {
+    document.getElementById('editarId').value = id;
+    document.getElementById('editarNome').value = nome;
+    document.getElementById('editarEmail').value = email;
+    new bootstrap.Modal(document.getElementById('modalEditarUsuario')).show();
+  }
+
+  function abrirModalSenha(id) {
+    document.getElementById('senhaId').value = id;
+    document.getElementById('novaSenha').value = '';
+    document.getElementById('confirmarSenha').value = '';
+    new bootstrap.Modal(document.getElementById('modalSenha')).show();
+  }
+
+  async function excluirUsuario(id) {
+    if (!confirm('Deseja realmente excluir este usuário?')) return;
+    await fetch(`https://supabase-user-api-painel.vercel.app/api/excluir-usuario?id=${id}`, { method: 'DELETE' });
+    carregarUsuarios();
+  }
+
+  async function alternarStatus(id, statusAtual) {
+    const novoStatus = !statusAtual;
+    await fetch('https://supabase-user-api-painel.vercel.app/api/atualizar-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ativo: novoStatus })
+    });
+    carregarUsuarios();
+  }
+
+  document.getElementById('formEditarUsuario').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const id = document.getElementById('editarId').value;
+    const nome = document.getElementById('editarNome').value;
+    const email = document.getElementById('editarEmail').value;
+    await fetch('https://supabase-user-api-painel.vercel.app/api/atualizar-usuario', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, nome, email })
+    });
+    bootstrap.Modal.getInstance(document.getElementById('modalEditarUsuario')).hide();
+    carregarUsuarios();
+  });
+
+  document.getElementById('formSenha').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const id = document.getElementById('senhaId').value;
+    const senha = document.getElementById('novaSenha').value;
+    const confirmar = document.getElementById('confirmarSenha').value;
+    if (senha !== confirmar) {
+      alert('As senhas não coincidem.');
+      return;
+    }
+    await fetch('https://supabase-user-api-painel.vercel.app/api/atualizar-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, senha })
+    });
+    bootstrap.Modal.getInstance(document.getElementById('modalSenha')).hide();
+  });
 
   async function carregarUsuarios() {
     const resposta = await fetch('https://supabase-user-api-painel.vercel.app/api/listar-usuarios');
