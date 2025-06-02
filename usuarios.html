@@ -101,33 +101,37 @@
     </div>
   </div>
 
-  <!-- Modal de senha -->
-  <div class="modal fade" id="modalSenha" tabindex="-1">
-    <div class="modal-dialog">
-      <form id="formSenha" class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Trocar Senha</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Modal de senha -->
+<div class="modal fade" id="modalSenha" tabindex="-1">
+  <div class="modal-dialog">
+    <form id="formSenha" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Trocar Senha</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="senhaId">
+        <div class="mb-3">
+          <label class="form-label">Nova Senha</label>
+          <input type="password" class="form-control" id="novaSenha" required minlength="6">
         </div>
-        <div class="modal-body">
-          <input type="hidden" id="senhaId">
-          <div class="mb-3">
-            <label class="form-label">Nova Senha</label>
-            <input type="password" class="form-control" id="novaSenha" required minlength="6">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Confirmar Senha</label>
-            <input type="password" class="form-control" id="confirmarSenha" required minlength="6">
-          </div>
+        <div class="mb-3">
+          <label class="form-label">Confirmar Senha</label>
+          <input type="password" class="form-control" id="confirmarSenha" required minlength="6">
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-success">Atualizar</button>
-        </div>
-      </form>
-    </div>
+
+        <!-- ALERTA DE CONFIRMAÇÃO OU ERRO -->
+        <div id="alertSenha" class="alert d-none mt-2" role="alert"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-success">Atualizar</button>
+      </div>
+    </form>
   </div>
 </div>
+
 
 <!-- SCRIPTS -->
 <script>
