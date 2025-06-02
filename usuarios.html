@@ -37,6 +37,7 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 30px;
+      gap: 12px;
     }
     .logout-btn {
       background-color: #dc3545;
@@ -47,6 +48,8 @@
       cursor: pointer;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <div id="menuLateral"></div>
@@ -54,6 +57,7 @@
   <div class="content">
     <div class="header">
       <h3>Lista de Usuários</h3>
+      <button class="btn btn-primary" onclick="abrirModalNovoUsuario()">+ Novo Usuário</button>
       <button class="logout-btn" onclick="logout()">Sair</button>
     </div>
 
@@ -88,18 +92,123 @@
     </table>
   </div>
 
+  <!-- Modal Novo Usuário -->
+  <div class="modal fade" id="modalNovoUsuario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="formNovoUsuario">
+          <div class="modal-header">
+            <h5 class="modal-title">Novo Usuário</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Nome</label>
+              <input type="text" class="form-control" id="novoNome" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">E-mail</label>
+              <input type="email" class="form-control" id="novoEmail" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Nível</label>
+              <select class="form-select" id="novoNivel" required>
+                <option value="admin">Administrador</option>
+                <option value="funcionario">Funcionário</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Senha</label>
+              <input type="password" class="form-control" id="novaSenha" required minlength="6">
+            </div>
+            <div id="msgErro" class="text-danger small d-none"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-success">Salvar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Carregar menu lateral do layout.html
-    fetch('layout.html')
-      .then(res => res.text())
-      .then(html => {
-        document.getElementById('menuLateral').innerHTML = html;
-      });
+    const supabase = window.supabase.createClient(
+      'https://kwktdbinfadztnkghuul.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3a3RkYmluZmFkenRua2dodXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NzI5NjAsImV4cCI6MjA2MzU0ODk2MH0.jN-ggFrIE1x_4kO8KE5G_bZq6V1yFT1El64oQ_ELubY'
+    );
+
+    const modalNovo = new bootstrap.Modal(document.getElementById('modalNovoUsuario'));
+
+    function abrirModalNovoUsuario() {
+      document.getElementById('formNovoUsuario').reset();
+      document.getElementById('msgErro').classList.add('d-none');
+      modalNovo.show();
+    }
+
+    document.getElementById('formNovoUsuario').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const nome = document.getElementById('novoNome').value.trim();
+      const email = document.getElementById('novoEmail').value.trim();
+      const nivel = document.getElementById('novoNivel').value;
+      const senha = document.getElementById('novaSenha').value;
+
+      if (!nome || !email || !nivel || senha.length < 6) {
+        mostrarErro('Preencha todos os campos corretamente.');
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.auth.admin.createUser({
+          email,
+          password: senha,
+          email_confirm: true
+        });
+
+        if (error) {
+          console.error(error);
+          mostrarErro('Erro ao criar usuário: ' + error.message);
+          return;
+        }
+
+        const userId = data.user.id;
+
+        const resExtra = await supabase
+          .from('usuarios_painel')
+          .insert([{ id: userId, nome, email, nivel }]);
+
+        if (resExtra.error) {
+          console.error(resExtra.error);
+          mostrarErro('Usuário criado, mas falha ao salvar nível de acesso.');
+          return;
+        }
+
+        modalNovo.hide();
+        alert('Usuário cadastrado com sucesso!');
+        location.reload();
+      } catch (err) {
+        console.error(err);
+        mostrarErro('Erro inesperado. Tente novamente.');
+      }
+    });
+
+    function mostrarErro(msg) {
+      const erro = document.getElementById('msgErro');
+      erro.textContent = msg;
+      erro.classList.remove('d-none');
+    }
 
     function logout() {
       localStorage.removeItem('usuarioLogado');
       window.location.href = 'index.html';
     }
+
+    fetch('layout.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('menuLateral').innerHTML = html;
+      });
   </script>
 </body>
 </html>
